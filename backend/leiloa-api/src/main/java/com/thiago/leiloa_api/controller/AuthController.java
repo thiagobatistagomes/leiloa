@@ -13,6 +13,8 @@ import com.thiago.leiloa_api.service.AuthService;
 
 import jakarta.validation.Valid;
 
+// Controlador responsável por autenticação (login e registro)
+
 @RestController
 @RequestMapping("/auth")
 public class AuthController {

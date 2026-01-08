@@ -17,6 +17,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 // Autenticar requisições com token JWT
+// Interceptar todas as requisições, ler o Header, validar JWT, carregar usuário e configurar contexto de segurança.
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {

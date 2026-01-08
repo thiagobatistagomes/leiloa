@@ -9,6 +9,8 @@ import org.springframework.context.annotation.Configuration;
 import com.thiago.leiloa_api.domain.role.Role;
 import com.thiago.leiloa_api.repository.RoleRepository;
 
+// Inserir roles padrão apenas se não existirem no banco de dados
+
 @Configuration
 public class DataInitializer {
 

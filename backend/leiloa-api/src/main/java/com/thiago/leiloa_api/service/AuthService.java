@@ -19,6 +19,8 @@ import com.thiago.leiloa_api.dto.auth.RegisterUserDTO;
 import com.thiago.leiloa_api.repository.RoleRepository;
 import com.thiago.leiloa_api.repository.UserRepository;
 
+// Serviço de autenticação 
+
 @Service
 public class AuthService {
 
@@ -63,7 +65,7 @@ public class AuthService {
         return buildAuthResponse(user, token);
     }
 
-    // REGISTER
+    // REGISTER (já retorna o token ao registrar)
     public AuthResponseDTO register(RegisterUserDTO dto) {
 
         if (userRepository.existsByEmail(dto.getEmail())) {

@@ -15,6 +15,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 import com.thiago.leiloa_api.service.CustomUserDetailsService;
 
+// Configurar Spring Security definindo endpoints públicos, autenticação stateless, filtro JWT, password encoder, etc.
+
 @Configuration
 public class SecurityConfig {
 
