@@ -6,6 +6,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -18,17 +19,21 @@ import com.thiago.leiloa_api.service.CustomUserDetailsService;
 // Configurar Spring Security definindo endpoints públicos, autenticação stateless, filtro JWT, password encoder, etc.
 
 @Configuration
+@EnableMethodSecurity
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final CustomUserDetailsService userDetailsService;
+    private final JWTAuthenticationEntryPoint jwtAuthEntryPoint;
 
     public SecurityConfig(
             JwtAuthenticationFilter jwtAuthFilter,
-            CustomUserDetailsService userDetailsService
+            CustomUserDetailsService userDetailsService,
+            JWTAuthenticationEntryPoint jwtAuthEntryPoint
     ) {
         this.jwtAuthFilter = jwtAuthFilter;
         this.userDetailsService = userDetailsService;
+        this.jwtAuthEntryPoint = jwtAuthEntryPoint;
     }
 
     @Bean
@@ -41,6 +46,10 @@ public class SecurityConfig {
             // Stateless (JWT não usa sessão)
             .sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            )
+
+            .exceptionHandling(ex -> ex
+                .authenticationEntryPoint(jwtAuthEntryPoint)
             )
 
             // Endpoints públicos

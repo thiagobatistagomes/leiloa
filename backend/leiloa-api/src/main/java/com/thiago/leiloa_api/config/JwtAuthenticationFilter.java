@@ -2,6 +2,7 @@ package com.thiago.leiloa_api.config;
 
 import java.io.IOException;
 
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -40,31 +41,29 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             FilterChain filterChain
     ) throws ServletException, IOException {
 
-        final String authHeader = request.getHeader("Authorization");
-        final String jwt;
-        final String userEmail;
+        String authHeader = request.getHeader("Authorization");
 
-        // Não tem header ou não começa com Bearer → segue fluxo
+        // Se não houver token JWT, continua a cadeia de filtros sem autenticar
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        // Extrai token
-        jwt = authHeader.substring(7);
+        String jwt = authHeader.substring(7);
 
-        // Extrai email do token
-        userEmail = jwtService.extractUsername(jwt);
+        try {
+            String userEmail = jwtService.extractUsername(jwt);
 
-        // Se usuário ainda não está autenticado
-        if (userEmail != null &&
-            SecurityContextHolder.getContext().getAuthentication() == null) {
+            // Se o usuário não estiver autenticado no contexto de segurança, autentica-lo
+            if (userEmail != null &&
+                SecurityContextHolder.getContext().getAuthentication() == null) {
 
-            UserDetails userDetails =
-                    userDetailsService.loadUserByUsername(userEmail);
+                UserDetails userDetails =
+                        userDetailsService.loadUserByUsername(userEmail);
 
-            // Valida token
-            if (jwtService.isTokenValid(jwt)) {
+                if (!jwtService.isTokenValid(jwt)) {
+                    throw new BadCredentialsException("Token JWT inválido");
+                }
 
                 UsernamePasswordAuthenticationToken authToken =
                         new UsernamePasswordAuthenticationToken(
@@ -78,14 +77,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                 .buildDetails(request)
                 );
 
-                // Registra autenticação no contexto
                 SecurityContextHolder
                         .getContext()
                         .setAuthentication(authToken);
             }
+
+        } catch (BadCredentialsException ex) {
+            SecurityContextHolder.clearContext();
+            throw ex;
         }
 
-        // Continua o fluxo
         filterChain.doFilter(request, response);
     }
+
 }
