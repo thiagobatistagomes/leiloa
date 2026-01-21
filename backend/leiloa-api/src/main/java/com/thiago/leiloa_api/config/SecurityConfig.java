@@ -2,6 +2,7 @@ package com.thiago.leiloa_api.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -55,10 +56,23 @@ public class SecurityConfig {
             // Endpoints públicos
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
+                    "/v3/api-docs/**",
+                    "/swagger-ui/**",
+                    "/swagger-ui.html"
+                ).permitAll()
+                // Listagem pública de itens
+                .requestMatchers(HttpMethod.GET, "/items").permitAll()
+                .requestMatchers(HttpMethod.GET, "/items/**").permitAll()
+                // Autenticado
+                .requestMatchers(HttpMethod.POST, "/items/**").authenticated()
+                .requestMatchers(HttpMethod.PUT, "/items/**").authenticated()
+                .requestMatchers(HttpMethod.DELETE, "/items/**").authenticated()
+                .requestMatchers(
                     "/auth/**"
                 ).permitAll()
                 .anyRequest().authenticated()
             )
+
 
             // Authentication Provider
             .authenticationProvider(authenticationProvider())

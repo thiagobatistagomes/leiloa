@@ -1,7 +1,10 @@
 package com.thiago.leiloa_api.dto.item;
 
 
+import java.time.LocalDateTime;
 import java.util.UUID;
+
+import com.thiago.leiloa_api.domain.item.ItemStatus;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -19,5 +22,9 @@ public class ItemResponseDTO {
 
     private UUID sellerId;
     private String sellerName;
+
+    private ItemStatus status;
+
+    private LocalDateTime createdAt;
 
 }

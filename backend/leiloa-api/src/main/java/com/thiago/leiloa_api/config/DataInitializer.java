@@ -25,17 +25,13 @@ public class DataInitializer {
     ) {
         return args -> {
 
-            Role userRole = roleRepository.findByName("ROLE_USER")
-                    .orElseGet(() -> roleRepository.save(
-                            new Role(null, "ROLE_USER", "Usuário padrão", null)
-                    ));
-
             Role adminRole = roleRepository.findByName("ROLE_ADMIN")
-                    .orElseGet(() -> roleRepository.save(
-                            new Role(null, "ROLE_ADMIN", "Administrador do sistema", null)
-                    ));
+                    .orElseThrow(() ->
+                            new IllegalStateException("ROLE_ADMIN não encontrada. Execute as migrations.")
+                    );
 
             if (userRepository.findByEmail("admin@leiloa.com").isEmpty()) {
+
                 User admin = new User();
                 admin.setName("Administrador");
                 admin.setEmail("admin@leiloa.com");
@@ -48,3 +44,4 @@ public class DataInitializer {
         };
     }
 }
+
