@@ -49,7 +49,7 @@ public class CustomUserDetails implements UserDetails {
         return user.getEmail();
     }
 
-    // Esse usuário pode logar no sistema?
+    // Apenas Usuários ACTIVE podem autenticar
 
     @Override
     public boolean isAccountNonExpired() {

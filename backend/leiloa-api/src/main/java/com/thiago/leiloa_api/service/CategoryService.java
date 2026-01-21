@@ -8,9 +8,9 @@ import org.springframework.stereotype.Service;
 import com.thiago.leiloa_api.domain.category.Category;
 import com.thiago.leiloa_api.dto.categories.CategoryResponseDTO;
 import com.thiago.leiloa_api.repository.CategoryRepository;
+import com.thiago.leiloa_api.repository.ItemRepository;
+
 import jakarta.persistence.EntityNotFoundException;
-
-
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -18,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 public class CategoryService {
 
     private final CategoryRepository categoryRepository;
+    private final ItemRepository itemRepository;
 
     // Listar todas as categorias
     public List<CategoryResponseDTO> findAll() {
@@ -37,11 +38,44 @@ public class CategoryService {
 
     // Criar nova categoria (Somente ADMIN)
     public CategoryResponseDTO create(String name) {
+
+        if (categoryRepository.existsByNameIgnoreCase(name)) {
+            throw new IllegalArgumentException("Categoria já existe");
+        }
+
         Category category = new Category();
         category.setName(name);
 
         Category saved = categoryRepository.save(category);
         return toDTO(saved);
+    }
+
+    // Editar categoria
+    public CategoryResponseDTO update(UUID id, String name) {
+
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Categoria não encontrada"));
+
+        if (!category.getName().equalsIgnoreCase(name) &&
+                categoryRepository.existsByNameIgnoreCase(name)) {
+            throw new IllegalArgumentException("Categoria já existe");
+        }
+
+        category.setName(name);
+        return toDTO(categoryRepository.save(category));
+    }
+
+    // Deletar categoria
+    public void delete(UUID id) {
+
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Categoria não encontrada"));
+
+        if (itemRepository.existsByCategory(category)) {
+            throw new IllegalStateException("Categoria está associada a itens");
+        }
+
+        categoryRepository.delete(category);
     }
 
     // Converter Category para CategoryResponseDTO
