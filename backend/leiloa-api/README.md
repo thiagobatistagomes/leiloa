@@ -87,7 +87,7 @@ JWT_EXPIRATION	Tempo de expiração do token (em ms)
 
 O arquivo application.properties já está preparado para ler as variáveis do .env, por exemplo:
 
-
+```bash
 spring.datasource.url=${DB_URL}
 spring.datasource.username=${DB_USERNAME}
 spring.datasource.password=${DB_PASSWORD}
@@ -96,7 +96,7 @@ spring.jpa.hibernate.ddl-auto=validate
 
 spring.flyway.enabled=true
 spring.flyway.locations=classpath:db/migration
-
+```
 
 O uso do spring-dotenv permite que o Spring Boot carregue automaticamente o arquivo .env.
 
@@ -124,7 +124,7 @@ http://localhost:8080/swagger-ui.html
 OpenAPI JSON
 http://localhost:8080/v3/api-docs
 
-
+---
 
 ## 🏗️ Arquitetura
 
