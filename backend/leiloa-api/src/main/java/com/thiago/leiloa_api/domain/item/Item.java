@@ -69,5 +69,17 @@ public class Item {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
+    public boolean canBeAuctioned() {
+        return this.status == ItemStatus.ACTIVE;
+    }
+
+    public boolean isOwnedBy(UUID userId) {
+        return this.seller != null && this.seller.getId().equals(userId);
+    }
+
+
+
 }
+
+
 

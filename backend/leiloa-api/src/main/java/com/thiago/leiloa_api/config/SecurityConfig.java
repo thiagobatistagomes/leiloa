@@ -67,6 +67,9 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/items/**").authenticated()
                 .requestMatchers(HttpMethod.PUT, "/items/**").authenticated()
                 .requestMatchers(HttpMethod.DELETE, "/items/**").authenticated()
+                // Leilões públicos
+                .requestMatchers(HttpMethod.GET, "/auctions").permitAll()
+                .requestMatchers(HttpMethod.GET, "/auctions/**").permitAll()
                 .requestMatchers(
                     "/auth/**"
                 ).permitAll()
