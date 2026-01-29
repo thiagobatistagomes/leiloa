@@ -66,6 +66,11 @@ public class Auction {
     @Column(nullable = false)
     private AuctionStatus status;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "last_bidder_id")
+    private User lastBidder;
+
+
     public boolean isOwnedBy(User user) {
         return this.user.getId().equals(user.getId());
     }
@@ -104,6 +109,12 @@ public class Auction {
     public boolean isPubliclyVisible() {
         return status == AuctionStatus.ACTIVE || status == AuctionStatus.SCHEDULED;
     }
+
+    public void updateAfterBid(BigDecimal newPrice, User bidder) {
+        this.currentPrice = newPrice;
+        this.lastBidder = bidder;
+    }
+
 
 
 

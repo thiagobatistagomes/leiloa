@@ -47,11 +47,13 @@ public class Bid {
     private LocalDateTime createdAt;
 
     // Construtor para criar um novo lance
-    public Bid(Auction auction, User bidder, BigDecimal value) {
-        this.auction = auction;
-        this.bidder = bidder;
-        this.value = value;
-        this.createdAt = LocalDateTime.now();
+    public static Bid create(Auction auction, User bidder, BigDecimal value) {
+        Bid bid = new Bid();
+        bid.auction = auction;
+        bid.bidder = bidder;
+        bid.value = value;
+        bid.createdAt = LocalDateTime.now();
+        return bid;
     }
 
     // Valida o lance contra as regras do leilão

@@ -1,7 +1,6 @@
 package com.thiago.leiloa_api.service;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
@@ -19,6 +18,7 @@ import com.thiago.leiloa_api.dto.bid.CreateBidDTO;
 import com.thiago.leiloa_api.repository.AuctionRepository;
 import com.thiago.leiloa_api.repository.BidRepository;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -34,46 +34,36 @@ public class BidService {
 
         User bidder = authService.getAuthenticatedUser();
 
-        Auction auction = auctionRepository.findById(dto.auctionId())
-            .orElseThrow(() -> new IllegalArgumentException("Leilão não encontrado"));
+        Auction auction = auctionRepository.findByIdForUpdate(dto.auctionId())
+            .orElseThrow(() -> new EntityNotFoundException("Leilão não encontrado"));
 
-        // 1. Leilão ativo
         if (auction.getStatus() != AuctionStatus.ACTIVE) {
-            throw new IllegalStateException("Leilão não está ativo.");
+            throw new BusinessException("Leilão não está ativo.");
         }
 
-        // 2. Dono não pode dar lance
         if (auction.isOwnedBy(bidder)) {
-            throw new IllegalStateException("Você não pode dar lance no próprio leilão.");
+            throw new BusinessException("Você não pode dar lance no próprio leilão.");
         }
 
         BigDecimal bidValue = dto.value();
         BigDecimal currentPrice = auction.getCurrentPrice();
         BigDecimal minIncrement = auction.getMinIncrement();
 
-        // 3. Valor maior que o atual
         if (bidValue.compareTo(currentPrice) <= 0) {
-            throw new IllegalArgumentException("O valor do lance deve ser maior que o preço atual.");
+            throw new BusinessException("O valor do lance deve ser maior que o preço atual.");
         }
 
-        // 4. Respeitar incremento mínimo
         if (bidValue.subtract(currentPrice).compareTo(minIncrement) < 0) {
-            throw new IllegalArgumentException(
+            throw new BusinessException(
                 "O lance deve respeitar o incremento mínimo de " + minIncrement
             );
         }
 
-        // 5. Criar bid
-        Bid bid = new Bid();
-        bid.setAuction(auction);
-        bid.setBidder(bidder);
-        bid.setValue(bidValue);
-        bid.setCreatedAt(LocalDateTime.now());
+        Bid bid = Bid.create(auction, bidder, bidValue);
 
-        bidRepository.save(bid);
+        bidRepository.saveAndFlush(bid);
 
-        // 6. Atualizar preço atual do leilão
-        auction.setCurrentPrice(bidValue);
+        auction.updateAfterBid(bidValue, bidder);
 
         return BidResponseDTO.fromEntity(bid);
     }
@@ -98,6 +88,13 @@ public class BidService {
                 .findAll(pageable)
                 .map(BidResponseDTO::fromEntity);
     }
+
+    public class BusinessException extends RuntimeException {
+        public BusinessException(String message) {
+            super(message);
+        }
+    }
+
 
 }
 
