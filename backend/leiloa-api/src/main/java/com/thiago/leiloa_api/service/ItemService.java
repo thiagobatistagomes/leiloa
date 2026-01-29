@@ -5,8 +5,6 @@ import java.util.UUID;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.thiago.leiloa_api.domain.category.Category;
@@ -28,11 +26,12 @@ public class ItemService {
 
     private final ItemRepository itemRepository;
     private final CategoryRepository categoryRepository;
+    private final AuthService authService;
 
     // Criar novos itens
     public ItemResponseDTO create(ItemCreateDTO dto) {
 
-        User user = getAuthenticatedUser();
+        User user = authService.getAuthenticatedUser();
 
         Category category = categoryRepository
                 .findById(dto.getCategoryId())
@@ -54,7 +53,7 @@ public class ItemService {
     // Listar itens do usuário autenticado
     public List<ItemResponseDTO> listMyItems() {
 
-        User user = getAuthenticatedUser();
+        User user = authService.getAuthenticatedUser();
 
         return itemRepository
                 .findAllBySellerAndStatus(user, ItemStatus.ACTIVE)
@@ -65,7 +64,7 @@ public class ItemService {
 
     public ItemResponseDTO getMyItemById(UUID itemId) {
 
-        User user = getAuthenticatedUser();
+        User user = authService.getAuthenticatedUser();
 
         Item item = itemRepository
                 .findByIdAndSeller(itemId, user)
@@ -83,7 +82,7 @@ public class ItemService {
     // Atualizar itens
     public ItemResponseDTO update(UUID itemId, ItemUpdateDTO dto) {
 
-        User user = getAuthenticatedUser();
+        User user = authService.getAuthenticatedUser();
 
         Item item = itemRepository
                 .findByIdAndSeller(itemId, user)
@@ -114,7 +113,7 @@ public class ItemService {
     // Deletar itens
     public void delete(UUID itemId) {
 
-        User user = getAuthenticatedUser();
+        User user = authService.getAuthenticatedUser();
 
         Item item = itemRepository
                 .findByIdAndSeller(itemId, user)
@@ -153,20 +152,6 @@ public class ItemService {
         );
     }
 
-    // Utilitário para obter o usuário autenticado
-    private User getAuthenticatedUser() {
-
-        Object principal = SecurityContextHolder
-                .getContext()
-                .getAuthentication()
-                .getPrincipal();
-
-        if (principal instanceof CustomUserDetails userDetails) {
-            return userDetails.getUser();
-        }
-
-        throw new AccessDeniedException("Usuário não autenticado");
-    }
 
     // Listar itens públicos ativos com paginação
     public Page<ItemResponseDTO> listPublicActiveItems(

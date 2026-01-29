@@ -7,20 +7,18 @@ import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 
 import com.thiago.leiloa_api.domain.auction.Auction;
 import com.thiago.leiloa_api.domain.auction.AuctionStatus;
 import com.thiago.leiloa_api.domain.item.Item;
 import com.thiago.leiloa_api.domain.user.User;
 import com.thiago.leiloa_api.dto.auction.AuctionDetailResponseDTO;
+import com.thiago.leiloa_api.dto.auction.AuctionFilterDTO;
 import com.thiago.leiloa_api.dto.auction.AuctionListResponseDTO;
 import com.thiago.leiloa_api.dto.auction.AuctionResponseDTO;
 import com.thiago.leiloa_api.dto.auction.CreateAuctionDTO;
-import com.thiago.leiloa_api.dto.auction.AuctionFilterDTO;
 import com.thiago.leiloa_api.repository.AuctionRepository;
 import com.thiago.leiloa_api.repository.ItemRepository;
 import com.thiago.leiloa_api.specification.AuctionSpecification;
@@ -36,13 +34,14 @@ public class AuctionService {
 
     private final AuctionRepository auctionRepository;
     private final ItemRepository itemRepository;
+    private final AuthService authService;
 
 
     @Transactional
     public AuctionResponseDTO create(CreateAuctionDTO dto) {
 
         // 1. Usuário autenticado
-        User user = getAuthenticatedUser();
+        User user = authService.getAuthenticatedUser();
 
         // 2. Buscar item
         Item item = itemRepository.findById(dto.itemId())
@@ -178,7 +177,7 @@ public class AuctionService {
     @Transactional
     public void cancel(UUID auctionId) {
 
-        User user = getAuthenticatedUser();
+        User user = authService.getAuthenticatedUser();
 
         Auction auction = auctionRepository.findById(auctionId)
                 .orElseThrow(() -> new IllegalArgumentException("Leilão não encontrado"));
@@ -191,22 +190,6 @@ public class AuctionService {
     }
 
 
-
-
-    // Utilitário para obter o usuário autenticado
-    private User getAuthenticatedUser() {
-
-        Object principal = SecurityContextHolder
-                .getContext()
-                .getAuthentication()
-                .getPrincipal();
-
-        if (principal instanceof CustomUserDetails userDetails) {
-            return userDetails.getUser();
-        }
-
-        throw new AccessDeniedException("Usuário não autenticado");
-    }
 
     
 }

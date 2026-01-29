@@ -1,11 +1,14 @@
 package com.thiago.leiloa_api.service;
 
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -90,6 +93,24 @@ public class AuthService {
         String token = jwtService.generateToken(userDetails);
 
         return buildAuthResponse(user, token);
+    }
+
+    public User getAuthenticatedUser() {
+
+        Object principal = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getPrincipal();
+
+        if (principal instanceof CustomUserDetails userDetails) {
+            return userDetails.getUser();
+        }
+
+        throw new AccessDeniedException("Usuário não autenticado");
+    }
+
+    public UUID getAuthenticatedUserId() {
+        return getAuthenticatedUser().getId();
     }
 
     // Método auxiliar para resposta

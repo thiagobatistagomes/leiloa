@@ -35,6 +35,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -54,6 +55,7 @@ public class AuctionController {
         summary = "Criar um leilão",
         description = "Cria um novo leilão para um item pertencente ao usuário autenticado."
     )
+    @SecurityRequirement(name = "bearerAuth")
     @ApiResponse(
         responseCode = "201",
         description = "Leilão criado com sucesso",
@@ -157,6 +159,7 @@ public class AuctionController {
 
     @PatchMapping("/{id}/cancel")
     @PreAuthorize("hasRole('USER')")
+    @SecurityRequirement(name = "bearerAuth")
     @Operation(summary = "Cancelar um leilão", description = "Cancela um leilão pertencente ao usuário autenticado.")
     public ResponseEntity<Void> cancel(@PathVariable UUID id) {
         auctionService.cancel(id);
@@ -165,6 +168,7 @@ public class AuctionController {
 
     @PatchMapping("/{id}/finish")
     @PreAuthorize("hasRole('ADMIN')")
+    @SecurityRequirement(name = "bearerAuth")
     @Operation(summary = "Finalizar um leilão", description = "Finaliza um leilão (apenas administradores).")
     public ResponseEntity<Void> finish(@PathVariable UUID id) {
         auctionService.finish(id);
