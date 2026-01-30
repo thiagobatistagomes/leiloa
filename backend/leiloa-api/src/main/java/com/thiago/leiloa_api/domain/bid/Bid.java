@@ -37,7 +37,7 @@ public class Bid {
     private Auction auction;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "bidder_id", nullable = false)
+    @JoinColumn(name = "user_id", nullable = false)
     private User bidder;
 
     @Column(nullable = false, precision = 12, scale = 2)

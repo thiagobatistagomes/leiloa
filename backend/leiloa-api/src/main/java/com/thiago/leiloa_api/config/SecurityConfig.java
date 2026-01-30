@@ -70,6 +70,9 @@ public class SecurityConfig {
                 // Leilões públicos
                 .requestMatchers(HttpMethod.GET, "/auctions").permitAll()
                 .requestMatchers(HttpMethod.GET, "/auctions/**").permitAll()
+                // Lances públicos
+                .requestMatchers(HttpMethod.GET, "/bids/public/**").permitAll()
+                // Autenticação
                 .requestMatchers(
                     "/auth/**"
                 ).permitAll()

@@ -3,6 +3,7 @@ package com.thiago.leiloa_api.controller;
 
 import java.util.UUID;
 
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -76,6 +77,7 @@ public class BidController {
                     sort = "createdAt",
                     direction = Sort.Direction.DESC
             )
+            @ParameterObject
             Pageable pageable
     ) {
         return ResponseEntity.ok(
@@ -99,6 +101,7 @@ public class BidController {
                     sort = "createdAt",
                     direction = Sort.Direction.DESC
             )
+            @ParameterObject
             Pageable pageable
     ) {
         UUID userId = authService.getAuthenticatedUserId();
@@ -123,6 +126,7 @@ public class BidController {
                     sort = "createdAt",
                     direction = Sort.Direction.DESC
             )
+            @ParameterObject
             Pageable pageable
     ) {
         return ResponseEntity.ok(
