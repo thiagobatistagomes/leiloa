@@ -67,6 +67,10 @@ public class ItemController {
             A paginação segue o padrão do Spring (page, size, sort).
             """
     )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Lista de itens retornada com sucesso"),
+        @ApiResponse(responseCode = "400", description = "Parâmetros de consulta inválidos")
+    })
     @GetMapping("/public")
     public ResponseEntity<Page<ItemResponseDTO>> listActiveItems(
 
@@ -221,6 +225,10 @@ public class ItemController {
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<ItemResponseDTO> update(
         @PathVariable UUID id,
+        @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            description = "Dados necessários para atualizar um item",
+            required = true
+        )
         @RequestBody @Valid ItemUpdateDTO dto
     ) {
         return ResponseEntity.ok(itemService.update(id, dto));
