@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.thiago.leiloa_api.domain.auction.Auction;
 import com.thiago.leiloa_api.domain.auction.AuctionStatus;
 import com.thiago.leiloa_api.repository.AuctionRepository;
+import com.thiago.leiloa_api.service.PaymentService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -19,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 public class AuctionScheduler {
 
     private final AuctionRepository auctionRepository;
+    private final PaymentService paymentService;
 
     @Transactional
     @Scheduled(fixedRate = 60_000) // a cada 1 minuto
@@ -42,7 +44,10 @@ public class AuctionScheduler {
                 now
             );
 
-        toFinish.forEach(Auction::finish);
+        toFinish.forEach(a -> {
+            a.finish();
+            paymentService.createPaymentForAuction(a); // Criar pagamento automaticamente para o leilão finalizado
+        });
     }
 }
 

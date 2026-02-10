@@ -67,6 +67,8 @@ public class AuctionService {
             throw new IllegalStateException("O item já possui um leilão ativo ou agendado.");
         }
 
+        // verificar se o item já possui um leilão finalizado
+
         // 6. Validar datas
         if (dto.startDate().isAfter(dto.endDate())) {
             throw new IllegalArgumentException("O início do leilão deve ser antes do fim.");

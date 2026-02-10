@@ -2,6 +2,7 @@ package com.thiago.leiloa_api.domain.auction;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.UUID;
 
 import com.thiago.leiloa_api.domain.item.Item;
@@ -21,6 +22,8 @@ import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+
 
 @Entity
 @Table(name = "auctions")
@@ -116,8 +119,23 @@ public class Auction {
     }
 
 
+    public UUID getWinnerId() {
+        if (status != AuctionStatus.FINISHED || lastBidder == null) {
+            return null;
+        }
+        return lastBidder.getId();
+    }
 
+    public BigDecimal getWinningBid() {
+        if (status != AuctionStatus.FINISHED || lastBidder == null) {
+            throw new IllegalStateException("Leilão não finalizado ou sem vencedor.");
+        }
+        return currentPrice;
+    }
 
+    public boolean isFinished() {
+        return this.status == AuctionStatus.FINISHED;
+    }
 
 
 }
