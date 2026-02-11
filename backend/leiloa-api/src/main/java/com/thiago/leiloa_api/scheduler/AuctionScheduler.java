@@ -37,7 +37,7 @@ public class AuctionScheduler {
 
         toActivate.forEach(a -> a.setStatus(AuctionStatus.ACTIVE));
 
-        // ACTIVE → FINISHED
+        // ACTIVE → WAITING_PAYMENT (finalizar leilão)
         List<Auction> toFinish =
             auctionRepository.findByStatusAndEndDateLessThanEqual(
                 AuctionStatus.ACTIVE,
@@ -45,7 +45,7 @@ public class AuctionScheduler {
             );
 
         toFinish.forEach(a -> {
-            a.finish();
+            a.waitForPayment();
             paymentService.createPaymentForAuction(a); // Criar pagamento automaticamente para o leilão finalizado
         });
     }

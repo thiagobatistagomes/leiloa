@@ -2,7 +2,6 @@ package com.thiago.leiloa_api.domain.auction;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Optional;
 import java.util.UUID;
 
 import com.thiago.leiloa_api.domain.item.Item;
@@ -97,16 +96,17 @@ public class Auction {
         this.status = AuctionStatus.CANCELED;
     }
 
-    public void finish() {
+    // Esperar pagamento do vencedor
+    public void waitForPayment() {
         if (status != AuctionStatus.ACTIVE) {
-            throw new IllegalStateException("Leilão não pode ser finalizado.");
+            throw new IllegalStateException("Leilão não pode ser colocado em espera de pagamento.");
         }
 
         if (LocalDateTime.now().isBefore(endDate)) {
             throw new IllegalStateException("Leilão ainda não chegou ao fim.");
         }
 
-        this.status = AuctionStatus.FINISHED;
+        this.status = AuctionStatus.WAITING_PAYMENT;
     }
 
     public boolean isPubliclyVisible() {
@@ -120,21 +120,25 @@ public class Auction {
 
 
     public UUID getWinnerId() {
-        if (status != AuctionStatus.FINISHED || lastBidder == null) {
+        if (status != AuctionStatus.WAITING_PAYMENT || lastBidder == null) {
             return null;
         }
         return lastBidder.getId();
     }
 
     public BigDecimal getWinningBid() {
-        if (status != AuctionStatus.FINISHED || lastBidder == null) {
+        if (status != AuctionStatus.WAITING_PAYMENT || lastBidder == null) {
             throw new IllegalStateException("Leilão não finalizado ou sem vencedor.");
         }
         return currentPrice;
     }
 
+    public boolean isWaitingPayment() {
+        return this.status == AuctionStatus.WAITING_PAYMENT;
+    }
+
     public boolean isFinished() {
-        return this.status == AuctionStatus.FINISHED;
+        return this.status == AuctionStatus.SOLD;
     }
 
 

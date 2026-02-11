@@ -67,19 +67,22 @@ public class AuctionService {
             throw new IllegalStateException("O item já possui um leilão ativo ou agendado.");
         }
 
-        // verificar se o item já possui um leilão finalizado
+        // 6. Verificar se o item já possui um leilão finalizado
+        if (auctionRepository.existsByItem_IdAndStatusIn(item.getId(), List.of(AuctionStatus.SOLD))) {
+            throw new IllegalStateException("O item já foi leiloado anteriormente.");
+        }
 
-        // 6. Validar datas
+        // 7. Validar datas
         if (dto.startDate().isAfter(dto.endDate())) {
             throw new IllegalArgumentException("O início do leilão deve ser antes do fim.");
         }
 
-        // 7. Definir status inicial
+        // 8. Definir status inicial
         AuctionStatus status = dto.startDate().isAfter(LocalDateTime.now())
                 ? AuctionStatus.SCHEDULED
                 : AuctionStatus.ACTIVE;
 
-        // 8. Criar entidade
+        // 9. Criar entidade
         Auction auction = new Auction();
         auction.setItem(item);
         auction.setUser(user);
@@ -90,10 +93,10 @@ public class AuctionService {
         auction.setEndDate(dto.endDate());
         auction.setStatus(status);
 
-        // 9. Persistir
+        // 10. Persistir
         Auction saved = auctionRepository.save(auction);
 
-        // 10. Retornar DTO
+        // 11. Retornar DTO
         return AuctionResponseDTO.fromEntity(saved);
     }
 
@@ -173,7 +176,7 @@ public class AuctionService {
             throw new IllegalStateException("O leilão ainda não chegou ao fim.");
         }
 
-        auction.finish();
+        auction.waitForPayment();
     }
 
     @Transactional

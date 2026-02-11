@@ -3,8 +3,11 @@ package com.thiago.leiloa_api.repository;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
@@ -33,5 +36,11 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID>, JpaSpec
 
     // Auditoria — buscar todos de um vencedor específico
     List<Payment> findByWinnerId(UUID winnerId);
+
+    List<Payment> findByWinner_IdAndStatus(UUID winnerId, PaymentStatus status);
+
+    Page<Payment> findByWinner_IdAndStatusNot(UUID userId, PaymentStatus status, Pageable pageable);
+
+
 }
 

@@ -2,29 +2,34 @@ package com.thiago.leiloa_api.service;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.thiago.leiloa_api.domain.auction.Auction;
 import com.thiago.leiloa_api.domain.auction.AuctionStatus;
+import com.thiago.leiloa_api.domain.item.Item;
+import com.thiago.leiloa_api.domain.item.ItemStatus;
+import com.thiago.leiloa_api.domain.payment.Payment;
+import com.thiago.leiloa_api.domain.payment.PaymentStatus;
 import com.thiago.leiloa_api.domain.user.User;
-
+import com.thiago.leiloa_api.dto.payment.ApprovePaymentDTO;
+import com.thiago.leiloa_api.dto.payment.CancelPaymentDTO;
+import com.thiago.leiloa_api.dto.payment.CreatePaymentForAuctionDTO;
+import com.thiago.leiloa_api.dto.payment.MyPaymentFilterDTO;
+import com.thiago.leiloa_api.dto.payment.MyPendingPaymentResponseDTO;
+import com.thiago.leiloa_api.dto.payment.PaymentFilterDTO;
+import com.thiago.leiloa_api.dto.payment.PaymentResponseDTO;
 import com.thiago.leiloa_api.repository.PaymentRepository;
 import com.thiago.leiloa_api.repository.UserRepository;
 import com.thiago.leiloa_api.specification.PaymentSpecification;
+import com.thiago.leiloa_api.specification.UserPaymentSpecification;
 
 import lombok.RequiredArgsConstructor;
-import com.thiago.leiloa_api.domain.payment.Payment;
-import com.thiago.leiloa_api.domain.payment.PaymentStatus;
-import com.thiago.leiloa_api.dto.payment.PaymentResponseDTO;
-import com.thiago.leiloa_api.dto.payment.CreatePaymentForAuctionDTO;
-import com.thiago.leiloa_api.dto.payment.PaymentFilterDTO;
-import com.thiago.leiloa_api.dto.payment.ApprovePaymentDTO;
-import com.thiago.leiloa_api.dto.payment.CancelPaymentDTO;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 
 
 
@@ -34,6 +39,7 @@ public class PaymentService {
 
     private final PaymentRepository paymentRepository;
     private final UserRepository userRepository;
+    private final AuthService authService;
 
     private static final Duration PAYMENT_DEADLINE = Duration.ofHours(48);
 
@@ -41,8 +47,8 @@ public class PaymentService {
     @Transactional
     public CreatePaymentForAuctionDTO createPaymentForAuction(Auction auction) {
 
-        if (auction.getStatus() != AuctionStatus.FINISHED) {
-            throw new IllegalStateException("Pagamento só pode ser criado para leilões FINALIZADOS.");
+        if (auction.getStatus() != AuctionStatus.WAITING_PAYMENT) {
+            throw new IllegalStateException("Pagamento só pode ser criado para leilões em espera de pagamento.");
         }
 
         UUID winnerId = auction.getWinnerId();
@@ -71,16 +77,47 @@ public class PaymentService {
         return CreatePaymentForAuctionDTO.fromEntity(saved);
     }
 
+    // 2. Listar pagamentos pendentes do usuário logado
+    @Transactional(readOnly = true)
+    public List<MyPendingPaymentResponseDTO> listMyPendingPayments() {
 
-    // 2. Simular pagamento (usuário paga)
+        User user = authService.getAuthenticatedUser();
+
+        var pendingPayments = paymentRepository.findByWinner_IdAndStatus(
+                user.getId(),
+                PaymentStatus.PENDING
+        );
+
+        return pendingPayments.stream()
+                .map(MyPendingPaymentResponseDTO::fromEntity)
+                .toList();
+    }
+
+    // 2.1 Listar pagamentos do usuário logado (histórico, exceto pendentes)
+    @Transactional(readOnly = true)
+    public Page<PaymentResponseDTO> findMyPayments(MyPaymentFilterDTO filter, Pageable pageable) {
+
+        User user = authService.getAuthenticatedUser();
+
+        return paymentRepository
+                .findAll(UserPaymentSpecification.filter(user.getId(), filter), pageable)
+                .map(PaymentResponseDTO::fromEntity);
+    }
+
+
+
+
+    // 3. Simular pagamento (usuário paga)
     @Transactional
-    public ApprovePaymentDTO approvePayment(UUID paymentId, UUID userId) {
+    public ApprovePaymentDTO approvePayment(UUID paymentId) {
+
+        User user = authService.getAuthenticatedUser();
 
         Payment payment = paymentRepository
                 .findById(paymentId)
                 .orElseThrow(() -> new IllegalStateException("Pagamento não encontrado."));
 
-        if (!payment.getWinner().getId().equals(userId)) {
+        if (!payment.getWinner().getId().equals(user.getId())) {
             throw new IllegalArgumentException("Apenas o vencedor pode realizar o pagamento.");
         }
 
@@ -91,11 +128,18 @@ public class PaymentService {
         payment.setStatus(PaymentStatus.COMPLETED);
         payment.setPaidAt(LocalDateTime.now());
 
+        
+        Auction auction = payment.getAuction();
+        auction.setStatus(AuctionStatus.SOLD);
+
+        Item item = auction.getItem();
+        item.setStatus(ItemStatus.SOLD);
+
         return ApprovePaymentDTO.fromEntity(payment);
     }
 
 
-    // 3. Expirar pagamentos pendentes após 48h
+    // 4. Expirar pagamentos pendentes após 48h
     @Transactional
     public int expirePendingPayments() {
 
@@ -107,13 +151,15 @@ public class PaymentService {
         pendings.forEach(payment -> {
             payment.setStatus(PaymentStatus.EXPIRED);
             payment.setExpiredAt(now);
+            Auction auction = payment.getAuction();
+            auction.setStatus(AuctionStatus.EXPIRED);
         });
 
         return pendings.size();
     }
 
  
-    // 4. Cancelamento manual pelo admin
+    // 5. Cancelamento manual pelo admin
     @Transactional
     public CancelPaymentDTO cancelPayment(UUID paymentId) {
 
@@ -130,7 +176,7 @@ public class PaymentService {
         return CancelPaymentDTO.fromEntity(payment);
     }
 
-    // 5. Auditoria (admin)
+    // 6. Auditoria (admin)
     public PaymentResponseDTO getByAuction(UUID auctionId) {
         Payment payment = paymentRepository.findByAuctionId(auctionId);
         return payment != null ? PaymentResponseDTO.fromEntity(payment) : null;

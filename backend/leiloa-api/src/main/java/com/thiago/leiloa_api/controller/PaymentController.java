@@ -3,6 +3,7 @@ package com.thiago.leiloa_api.controller;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 import org.springdoc.core.annotations.ParameterObject;
@@ -12,24 +13,32 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
-
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.thiago.leiloa_api.domain.payment.PaymentStatus;
-import com.thiago.leiloa_api.dto.payment.*;
+import com.thiago.leiloa_api.dto.payment.ApprovePaymentDTO;
+import com.thiago.leiloa_api.dto.payment.CancelPaymentDTO;
+import com.thiago.leiloa_api.dto.payment.MyPaymentFilterDTO;
+import com.thiago.leiloa_api.dto.payment.MyPendingPaymentResponseDTO;
+import com.thiago.leiloa_api.dto.payment.PaymentFilterDTO;
+import com.thiago.leiloa_api.dto.payment.PaymentResponseDTO;
 import com.thiago.leiloa_api.service.PaymentService;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.*;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-
-
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -107,6 +116,56 @@ public class PaymentController {
     }
 
 
+    @GetMapping("/me")
+    @PreAuthorize("hasRole('USER')")
+    @SecurityRequirement(name = "bearerAuth")
+    @Operation(
+        summary = "Listar pagamentos do usuário",
+        description = "Retorna todos os pagamentos do usuário autenticado, exceto os pendentes."
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Lista carregada com sucesso"),
+        @ApiResponse(responseCode = "401", description = "Não autenticado"),
+        @ApiResponse(responseCode = "403", description = "Sem permissão")
+    })
+    public ResponseEntity<Page<PaymentResponseDTO>> listMyPayments(
+        @RequestParam(required=false) List<PaymentStatus> statuses,
+        @RequestParam(required=false) BigDecimal minValue,
+        @RequestParam(required=false) BigDecimal maxValue,
+        @RequestParam(required=false) LocalDateTime dateFrom,
+        @RequestParam(required=false) LocalDateTime dateTo,
+        @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC)
+        @ParameterObject Pageable pageable
+    ) {
+        MyPaymentFilterDTO filter = new MyPaymentFilterDTO();
+        filter.setStatuses(statuses);
+        filter.setMinValue(minValue);
+        filter.setMaxValue(maxValue);
+        filter.setDateFrom(dateFrom);
+        filter.setDateTo(dateTo);
+        return ResponseEntity.ok(paymentService.findMyPayments(filter, pageable));
+    }
+
+
+    @GetMapping("/me/pending")
+    @PreAuthorize("hasRole('USER')")
+    @SecurityRequirement(name = "bearerAuth")
+    @Operation(
+        summary = "Listar pagamentos pendentes do usuário",
+        description = "Retorna todos os pagamentos que o usuário autenticado precisa realizar."
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Lista retornada com sucesso"),
+        @ApiResponse(responseCode = "401", description = "Não autenticado"),
+        @ApiResponse(responseCode = "403", description = "Sem permissão"),
+        @ApiResponse(responseCode = "404", description = "Nenhum pagamento pendente encontrado")
+    })
+    public ResponseEntity<List<MyPendingPaymentResponseDTO>> listMyPendingPayments() {
+        return ResponseEntity.ok(paymentService.listMyPendingPayments());
+    }
+
+
+
     @PostMapping("/{paymentId}/approve")
     @PreAuthorize("hasRole('USER')")
     @SecurityRequirement(name = "bearerAuth")
@@ -122,11 +181,9 @@ public class PaymentController {
         @ApiResponse(responseCode = "404", description = "Pagamento não encontrado")
     })
     public ResponseEntity<ApprovePaymentDTO> approvePayment(
-            @PathVariable UUID paymentId,
-            @Parameter(description = "ID do usuário autenticado", required = true)
-            @RequestParam UUID userId
+            @PathVariable UUID paymentId
     ) {
-        return ResponseEntity.ok(paymentService.approvePayment(paymentId, userId));
+        return ResponseEntity.ok(paymentService.approvePayment(paymentId));
     }
 
 
