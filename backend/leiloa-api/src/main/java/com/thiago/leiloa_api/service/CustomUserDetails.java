@@ -49,7 +49,7 @@ public class CustomUserDetails implements UserDetails {
         return user.getEmail();
     }
 
-    // Apenas Usuários ACTIVE podem autenticar
+    // Apenas Usuários ACTIVE podem autenticar; INACTIVE podem solicitar reativação;
 
     @Override
     public boolean isAccountNonExpired() {
@@ -68,7 +68,7 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return user.getStatus() == UserStatus.ACTIVE;
+        return user.getStatus() != UserStatus.BLOCKED;
     }
 
     public User getUser() {

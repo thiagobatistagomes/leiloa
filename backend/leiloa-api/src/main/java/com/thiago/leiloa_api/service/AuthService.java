@@ -1,11 +1,13 @@
 package com.thiago.leiloa_api.service;
 
+import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -18,9 +20,18 @@ import com.thiago.leiloa_api.domain.user.User;
 import com.thiago.leiloa_api.domain.user.UserStatus;
 import com.thiago.leiloa_api.dto.auth.AuthResponseDTO;
 import com.thiago.leiloa_api.dto.auth.LoginDTO;
+import com.thiago.leiloa_api.dto.auth.ReactivateAccountDTO;
 import com.thiago.leiloa_api.dto.auth.RegisterUserDTO;
+import com.thiago.leiloa_api.dto.auth.UpdatePasswordDTO;
+import com.thiago.leiloa_api.exception.BlockedUserException;
+import com.thiago.leiloa_api.exception.InactiveUserException;
 import com.thiago.leiloa_api.repository.RoleRepository;
 import com.thiago.leiloa_api.repository.UserRepository;
+
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
+
+
 
 // Serviço de autenticação 
 
@@ -63,7 +74,21 @@ public class AuthService {
 
         User user = userDetails.getUser();
 
+        // Verificar se o usuário está ativo
+        if (user.getStatus() == UserStatus.INACTIVE) {
+            throw new InactiveUserException("Conta desativada pelo usuário. Deseja reativar?");
+        }
+
+        if (user.getStatus() == UserStatus.BLOCKED) {
+            throw new BlockedUserException("Conta banida pelo administrador");
+        }
+
         String token = jwtService.generateToken(userDetails);
+
+        // Atualizar data do último login
+        user.setLastLoginAt(LocalDateTime.now());
+
+        userRepository.save(user);
 
         return buildAuthResponse(user, token);
     }
@@ -108,6 +133,63 @@ public class AuthService {
 
         throw new AccessDeniedException("Usuário não autenticado");
     }
+
+    // Atualizar a senha do usuário
+    @Transactional
+    public void updatePassword(UpdatePasswordDTO dto) {
+
+        UUID userId = getAuthenticatedUserId();
+        
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado"));
+
+        if (!passwordEncoder.matches(dto.currentPassword(), user.getPassword())) {
+            throw new BadCredentialsException("Senha atual incorreta");
+        }
+
+        if(passwordEncoder.matches(dto.newPassword(), user.getPassword())) {
+            throw new IllegalArgumentException("A nova senha deve ser diferente da senha atual");
+        }
+
+        user.setPassword(passwordEncoder.encode(dto.newPassword()));
+        user.setUpdatedAt(LocalDateTime.now());
+        userRepository.save(user);
+    }
+
+    // Reativar Conta
+    @Transactional
+    public AuthResponseDTO reactivateAccount(ReactivateAccountDTO dto) {
+
+        // 1. Buscar usuário pelo e-mail
+        User user = userRepository.findByEmail(dto.email())
+                .orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado."));
+
+        // 2. Verificar se realmente está inativo
+        if (user.getStatus() != UserStatus.INACTIVE) {
+            throw new IllegalStateException("Esta conta não está inativa.");
+        }
+
+        // 3. Validar senha
+        if (!passwordEncoder.matches(dto.password(), user.getPassword())) {
+            throw new IllegalArgumentException("Credenciais inválidas.");
+        }
+
+        // 4. Reativar usuário
+        user.setStatus(UserStatus.ACTIVE);
+        userRepository.save(user);
+
+        // 5. Criar token e logar automaticamente
+        CustomUserDetails userDetails = new CustomUserDetails(user);
+        String token = jwtService.generateToken(userDetails);
+
+        // atualizar data do último login
+        user.setLastLoginAt(LocalDateTime.now());
+
+        userRepository.save(user);
+
+        return buildAuthResponse(user, token);
+    }
+
 
     public UUID getAuthenticatedUserId() {
         return getAuthenticatedUser().getId();

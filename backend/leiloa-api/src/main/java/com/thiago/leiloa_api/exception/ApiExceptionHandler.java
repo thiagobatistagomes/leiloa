@@ -93,5 +93,18 @@ public class ApiExceptionHandler {
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(new ApiError("Erro interno no servidor"));
     }
+
+    @ExceptionHandler(InactiveUserException.class)
+    public ResponseEntity<ApiError> handleInactiveUser(InactiveUserException ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(new ApiError("Conta inativa"));
+    }
+
+    @ExceptionHandler(BlockedUserException.class)
+    public ResponseEntity<ApiError> handleBlockedUser(BlockedUserException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(new ApiError("Conta bloqueada"));
+    }
+
 }
 

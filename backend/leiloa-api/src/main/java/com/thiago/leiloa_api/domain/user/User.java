@@ -5,6 +5,9 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import com.thiago.leiloa_api.domain.role.Role;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -18,11 +21,9 @@ import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
-
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.Getter;
-import com.thiago.leiloa_api.domain.role.Role;
 
 
 
@@ -54,6 +55,19 @@ public class User {
     @Column(nullable = false, updatable = false)
     @CreationTimestamp
     private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    @Column(name = "status_changed_by")
+    private UUID statusChangedBy;
+
+    @Column(name = "last_login_at")
+    private LocalDateTime lastLoginAt;
+
+    @Column(name = "phone_number")
+    private String phoneNumber;
 
     @ManyToMany
     @JoinTable(
