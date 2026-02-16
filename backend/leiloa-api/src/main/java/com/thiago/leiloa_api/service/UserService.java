@@ -19,9 +19,10 @@ import com.thiago.leiloa_api.domain.user.UserStatus;
 import com.thiago.leiloa_api.dto.user.UserAuditResponseDTO;
 import com.thiago.leiloa_api.dto.user.UserFilterDTO;
 import com.thiago.leiloa_api.dto.user.UserResponseDTO;
+import com.thiago.leiloa_api.dto.user.UserUpdateDTO;
 import com.thiago.leiloa_api.dto.user.UpdatePhoneDTO;
 import com.thiago.leiloa_api.repository.UserRepository;
-import com.thiago.leiloa_api.service.BidService.BusinessException;
+
 
 import lombok.RequiredArgsConstructor;
 
@@ -67,6 +68,24 @@ public class UserService {
 
         return UserResponseDTO.fromEntity(user);
     }
+
+    @Transactional
+    public UserResponseDTO updateMe(UserUpdateDTO dto) {
+
+        User user = authService.getAuthenticatedUser();
+
+        if (dto.name() != null && !dto.name().equals(user.getName())) {
+            user.setName(dto.name());
+        } else {
+            throw new RuntimeException("O novo nome deve ser diferente do atual.");
+        }
+
+        user.setUpdatedAt(LocalDateTime.now());
+        userRepository.save(user);
+
+        return UserResponseDTO.fromEntity(user);
+    }
+
 
     @Transactional
     public UserResponseDTO blockUser(UUID userId) {

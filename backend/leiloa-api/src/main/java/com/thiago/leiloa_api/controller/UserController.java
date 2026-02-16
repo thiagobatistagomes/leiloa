@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PutMapping;
+
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -24,6 +24,7 @@ import com.thiago.leiloa_api.dto.user.UpdatePhoneDTO;
 import com.thiago.leiloa_api.dto.user.UserAuditResponseDTO;
 import com.thiago.leiloa_api.dto.user.UserFilterDTO;
 import com.thiago.leiloa_api.dto.user.UserResponseDTO;
+import com.thiago.leiloa_api.dto.user.UserUpdateDTO;
 import com.thiago.leiloa_api.service.UserService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -60,7 +61,7 @@ public class UserController {
         return ResponseEntity.ok(userService.deactivateMyAccount());
     }
 
-    @PutMapping("/me/phone")
+    @PatchMapping("/me/phone")
     @PreAuthorize("hasRole('USER')")
     @SecurityRequirement(name = "bearerAuth")
     @Operation(
@@ -73,6 +74,22 @@ public class UserController {
     })
     public ResponseEntity<UserResponseDTO> updatePhoneNumber(@Valid @RequestBody UpdatePhoneDTO dto) {
         return ResponseEntity.ok(userService.updatePhoneNumber(dto));
+    }
+
+    @PatchMapping("/me")
+    @PreAuthorize("hasRole('USER')")
+    @SecurityRequirement(name = "bearerAuth")
+    @Operation(
+        summary = "Atualizar minhas informações",
+        description = "Permite que o usuário autenticado atualize suas informações pessoais, como nome."
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Informações atualizadas com sucesso"),
+        @ApiResponse(responseCode = "400", description = "Dados inválidos ou regra de negócio violada"),
+        @ApiResponse(responseCode = "401", description = "Não autenticado")
+    })
+    public ResponseEntity<UserResponseDTO> updateMe(@Valid @RequestBody UserUpdateDTO dto) {
+        return ResponseEntity.ok(userService.updateMe(dto));
     }
 
     @PatchMapping("/{userId}/block")

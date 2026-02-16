@@ -108,6 +108,7 @@ public class AuthService {
         user.setName(dto.getName());
         user.setEmail(dto.getEmail());
         user.setPassword(passwordEncoder.encode(dto.getPassword()));
+        user.setPhoneNumber(dto.getPhoneNumber());
         user.setStatus(UserStatus.ACTIVE);
         user.setRoles(Set.of(roleUser));
 
