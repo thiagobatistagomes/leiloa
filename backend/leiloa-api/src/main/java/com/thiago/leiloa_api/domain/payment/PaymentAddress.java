@@ -20,10 +20,8 @@ import lombok.Setter;
 
 @Entity
 @Table(name = "payment_addresses")
-@Getter
-@Setter
-@AllArgsConstructor
-@NoArgsConstructor
+@Getter @Setter
+@AllArgsConstructor @NoArgsConstructor
 public class PaymentAddress {
 
     @Id
@@ -65,3 +63,4 @@ public class PaymentAddress {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 }
+

@@ -62,6 +62,19 @@ public class Delivery {
     @Column(name = "delivered_at")
     private LocalDateTime deliveredAt;
 
+    @Column(name = "pending_at")
+    private LocalDateTime pendingAt;
+
+    @Column(name = "processing_at")
+    private LocalDateTime processingAt;
+
+    @Column(name = "in_transit_at")
+    private LocalDateTime inTransitAt;
+
+    @Column(name = "out_for_delivery_at")
+    private LocalDateTime outForDeliveryAt;
+
+
     @Column(name = "return_requested_at")
     private LocalDateTime returnRequestedAt;
 

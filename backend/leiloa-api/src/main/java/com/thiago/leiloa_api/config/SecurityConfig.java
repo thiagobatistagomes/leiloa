@@ -72,6 +72,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/auctions/**").permitAll()
                 // Lances públicos
                 .requestMatchers(HttpMethod.GET, "/bids/public/**").permitAll()
+                // Categorias públicas
+                .requestMatchers(HttpMethod.GET, "/categories").permitAll()
                 // Autenticação
                 .requestMatchers(
                     "/auth/**"

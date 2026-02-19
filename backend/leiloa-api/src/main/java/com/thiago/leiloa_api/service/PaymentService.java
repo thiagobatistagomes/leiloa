@@ -12,26 +12,21 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.thiago.leiloa_api.domain.auction.Auction;
 import com.thiago.leiloa_api.domain.auction.AuctionStatus;
+import com.thiago.leiloa_api.domain.delivery.Delivery;
+import com.thiago.leiloa_api.domain.delivery.DeliveryStatus;
 import com.thiago.leiloa_api.domain.item.Item;
 import com.thiago.leiloa_api.domain.item.ItemStatus;
 import com.thiago.leiloa_api.domain.payment.Payment;
+import com.thiago.leiloa_api.domain.payment.PaymentAddress;
 import com.thiago.leiloa_api.domain.payment.PaymentStatus;
 import com.thiago.leiloa_api.domain.user.User;
-import com.thiago.leiloa_api.dto.payment.ApprovePaymentDTO;
-import com.thiago.leiloa_api.dto.payment.CancelPaymentDTO;
-import com.thiago.leiloa_api.dto.payment.CreatePaymentForAuctionDTO;
-import com.thiago.leiloa_api.dto.payment.MyPaymentFilterDTO;
-import com.thiago.leiloa_api.dto.payment.MyPendingPaymentResponseDTO;
-import com.thiago.leiloa_api.dto.payment.PaymentFilterDTO;
-import com.thiago.leiloa_api.dto.payment.PaymentResponseDTO;
-import com.thiago.leiloa_api.repository.PaymentRepository;
-import com.thiago.leiloa_api.repository.UserRepository;
+import com.thiago.leiloa_api.dto.payment.*;
+import com.thiago.leiloa_api.repository.*;
+
 import com.thiago.leiloa_api.specification.PaymentSpecification;
 import com.thiago.leiloa_api.specification.UserPaymentSpecification;
 
 import lombok.RequiredArgsConstructor;
-
-
 
 @Service
 @RequiredArgsConstructor
@@ -40,29 +35,32 @@ public class PaymentService {
     private final PaymentRepository paymentRepository;
     private final UserRepository userRepository;
     private final AuthService authService;
+    private final PaymentAddressRepository paymentAddressRepository;
+    private final AuctionRepository auctionRepository;
+    private final ItemRepository itemRepository;
+    private final DeliveryRepository deliveryRepository;
 
     private static final Duration PAYMENT_DEADLINE = Duration.ofHours(48);
 
-    // 1. Criar pagamento automaticamente após o leilão ser finalizado
+    // 1. Criar pagamento automaticamente após o leilão
+
     @Transactional
     public CreatePaymentForAuctionDTO createPaymentForAuction(Auction auction) {
 
         if (auction.getStatus() != AuctionStatus.WAITING_PAYMENT) {
-            throw new IllegalStateException("Pagamento só pode ser criado para leilões em espera de pagamento.");
+            throw new IllegalStateException("Pagamento só pode ser criado para leilões aguardando pagamento.");
         }
 
-        UUID winnerId = auction.getWinnerId();
-        if (winnerId == null) {
-            throw new IllegalStateException("Leilão finalizado sem vencedor — nenhum pagamento será criado.");
+        if (auction.getWinnerId() == null) {
+            throw new IllegalStateException("Leilão não possui vencedor.");
         }
 
-        if (paymentRepository.existsByAuctionId(auction.getId())) {
-            Payment existing = paymentRepository.findByAuctionId(auction.getId());
+        Payment existing = paymentRepository.findByAuctionId(auction.getId());
+        if (existing != null) {
             return CreatePaymentForAuctionDTO.fromEntity(existing);
         }
 
-        User winner = userRepository
-                .findById(winnerId)
+        User winner = userRepository.findById(auction.getWinnerId())
                 .orElseThrow(() -> new IllegalStateException("Vencedor não encontrado."));
 
         Payment payment = new Payment();
@@ -77,23 +75,20 @@ public class PaymentService {
         return CreatePaymentForAuctionDTO.fromEntity(saved);
     }
 
-    // 2. Listar pagamentos pendentes do usuário logado
+    // 2. Pagamentos pendentes do usuário logado
     @Transactional(readOnly = true)
     public List<MyPendingPaymentResponseDTO> listMyPendingPayments() {
 
         User user = authService.getAuthenticatedUser();
 
-        var pendingPayments = paymentRepository.findByWinner_IdAndStatus(
-                user.getId(),
-                PaymentStatus.PENDING
-        );
-
-        return pendingPayments.stream()
+        return paymentRepository
+                .findByWinner_IdAndStatus(user.getId(), PaymentStatus.PENDING)
+                .stream()
                 .map(MyPendingPaymentResponseDTO::fromEntity)
                 .toList();
     }
 
-    // 2.1 Listar pagamentos do usuário logado (histórico, exceto pendentes)
+    // 2.1 Histórico do usuário (exceto pendentes)
     @Transactional(readOnly = true)
     public Page<PaymentResponseDTO> findMyPayments(MyPaymentFilterDTO filter, Pageable pageable) {
 
@@ -101,20 +96,20 @@ public class PaymentService {
 
         return paymentRepository
                 .findAll(UserPaymentSpecification.filter(user.getId(), filter), pageable)
-                .map(PaymentResponseDTO::fromEntity);
+                .map(payment -> {
+                    PaymentAddress pa = paymentAddressRepository.findByPaymentId(payment.getId()).orElse(null);
+                    return PaymentResponseDTO.fromEntity(payment, pa);
+                });
     }
 
 
-
-
-    // 3. Simular pagamento (usuário paga)
+    // 3. Aprovar pagamento
     @Transactional
     public ApprovePaymentDTO approvePayment(UUID paymentId) {
 
         User user = authService.getAuthenticatedUser();
 
-        Payment payment = paymentRepository
-                .findById(paymentId)
+        Payment payment = paymentRepository.findById(paymentId)
                 .orElseThrow(() -> new IllegalStateException("Pagamento não encontrado."));
 
         if (!payment.getWinner().getId().equals(user.getId())) {
@@ -122,49 +117,64 @@ public class PaymentService {
         }
 
         if (payment.getStatus() != PaymentStatus.PENDING) {
-            throw new IllegalStateException("Pagamento não está mais pendente.");
+            throw new IllegalStateException("Pagamento não está pendente.");
         }
 
+        // Verifica se endereço foi definido
+        PaymentAddress pa = paymentAddressRepository
+                .findByPaymentId(payment.getId())
+                .orElseThrow(() -> new IllegalStateException("Defina um endereço antes de finalizar o pagamento."));
+
+        // Marca como pago
         payment.setStatus(PaymentStatus.COMPLETED);
         payment.setPaidAt(LocalDateTime.now());
 
-        
+        // Atualiza auction e item
         Auction auction = payment.getAuction();
         auction.setStatus(AuctionStatus.SOLD);
 
         Item item = auction.getItem();
         item.setStatus(ItemStatus.SOLD);
 
+        auctionRepository.save(auction);
+        itemRepository.save(item);
+
+        // CRIAÇÃO AUTOMÁTICA DA ENTREGA
+        if (!deliveryRepository.existsByPayment_Id(payment.getId())) {
+
+            Delivery delivery = DeliveryFactory.create(payment, pa);
+            deliveryRepository.save(delivery);
+        }
+
         return ApprovePaymentDTO.fromEntity(payment);
     }
 
-
-    // 4. Expirar pagamentos pendentes após 48h
+    // 4. Expirar pagamentos após 48h
     @Transactional
     public int expirePendingPayments() {
 
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime limit = now.minus(PAYMENT_DEADLINE);
+        LocalDateTime limit = LocalDateTime.now().minus(PAYMENT_DEADLINE);
 
         var pendings = paymentRepository.findPendingPaymentsCreatedBefore(limit);
 
         pendings.forEach(payment -> {
             payment.setStatus(PaymentStatus.EXPIRED);
-            payment.setExpiredAt(now);
+            payment.setExpiredAt(LocalDateTime.now());
+
             Auction auction = payment.getAuction();
             auction.setStatus(AuctionStatus.EXPIRED);
+
+            auctionRepository.save(auction);
         });
 
         return pendings.size();
     }
 
- 
-    // 5. Cancelamento manual pelo admin
+    // 5. Cancelamento manual
     @Transactional
     public CancelPaymentDTO cancelPayment(UUID paymentId) {
 
-        Payment payment = paymentRepository
-                .findById(paymentId)
+        Payment payment = paymentRepository.findById(paymentId)
                 .orElseThrow(() -> new IllegalStateException("Pagamento não encontrado."));
 
         if (payment.getStatus() != PaymentStatus.PENDING) {
@@ -176,24 +186,47 @@ public class PaymentService {
         return CancelPaymentDTO.fromEntity(payment);
     }
 
-    // 6. Auditoria (admin)
+
+    // 6. Auditoria admin
+    @Transactional(readOnly = true)
     public PaymentResponseDTO getByAuction(UUID auctionId) {
         Payment payment = paymentRepository.findByAuctionId(auctionId);
-        return payment != null ? PaymentResponseDTO.fromEntity(payment) : null;
+        PaymentAddress pa = payment != null
+                ? paymentAddressRepository.findByPaymentId(payment.getId()).orElse(null)
+                : null;
+        return payment != null ? PaymentResponseDTO.fromEntity(payment, pa) : null;
     }
 
+    @Transactional(readOnly = true)
     public PaymentResponseDTO getById(UUID id) {
-        Payment payment = paymentRepository
-                .findById(id)
+        Payment payment = paymentRepository.findById(id)
                 .orElseThrow(() -> new IllegalStateException("Pagamento não encontrado."));
 
-        return PaymentResponseDTO.fromEntity(payment);
+        PaymentAddress pa = paymentAddressRepository.findByPaymentId(payment.getId()).orElse(null);
+
+        return PaymentResponseDTO.fromEntity(payment, pa);
     }
 
+    @Transactional(readOnly = true)
     public Page<PaymentResponseDTO> search(PaymentFilterDTO filter, Pageable pageable) {
         return paymentRepository
                 .findAll(PaymentSpecification.filter(filter), pageable)
-                .map(PaymentResponseDTO::fromEntity);
+                .map(payment -> {
+                    PaymentAddress pa = paymentAddressRepository.findByPaymentId(payment.getId()).orElse(null);
+                    return PaymentResponseDTO.fromEntity(payment, pa);
+                });
     }
 
+ 
+    // FACTORY DE DELIVERY
+    public static class DeliveryFactory {
+        public static Delivery create(Payment payment, PaymentAddress address) {
+            Delivery d = new Delivery();
+            d.setPayment(payment);
+            d.setAddress(address);
+            d.setStatus(DeliveryStatus.PENDING);
+            d.setDeliveryMethod("STANDARD");
+            return d;
+        }
+    }
 }

@@ -4,7 +4,10 @@ import java.math.BigDecimal;
 import java.util.UUID;
 
 import com.thiago.leiloa_api.domain.payment.Payment;
+import com.thiago.leiloa_api.domain.payment.PaymentAddress;
 import com.thiago.leiloa_api.domain.payment.PaymentStatus;
+import com.thiago.leiloa_api.dto.payment_address.PaymentAddressDTO;
+
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,6 +15,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import java.time.LocalDateTime;
+
 
 @Getter
 @Setter
@@ -29,7 +33,9 @@ public class PaymentResponseDTO {
     private LocalDateTime paidAt;
     private LocalDateTime expiredAt;
 
-    public static PaymentResponseDTO fromEntity(Payment p) {
+    private PaymentAddressDTO address;
+
+    public static PaymentResponseDTO fromEntity(Payment p, PaymentAddress pa) {
         return PaymentResponseDTO.builder()
                 .id(p.getId())
                 .auctionId(p.getAuction().getId())
@@ -39,7 +45,9 @@ public class PaymentResponseDTO {
                 .createdAt(p.getCreatedAt())
                 .paidAt(p.getPaidAt())
                 .expiredAt(p.getExpiredAt())
+                .address(pa != null ? PaymentAddressDTO.fromEntity(pa) : null)
                 .build();
     }
 }
+
 
