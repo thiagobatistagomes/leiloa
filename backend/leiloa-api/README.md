@@ -11,9 +11,14 @@ A Leiloa API é uma API REST responsável por:
 
 - Autenticação e registro de usuários
 - Controle de acesso com JWT e roles
+- Cadastro, edição e exclusão de endereços
 - Gerenciamento de categorias
 - Cadastro, edição e exclusão lógica de itens
 - Listagem pública de itens ativos com filtros e paginação
+- Gerenciamento de Leilões
+- Gerenciamento de Lances
+- Gerenciamento de Comentários
+- Simulação de Pagamentos e Entregas
 
 
 A API segue o padrão REST e utiliza **JSON** como formato de troca de dados.
