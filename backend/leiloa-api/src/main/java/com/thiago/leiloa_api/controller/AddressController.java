@@ -39,7 +39,7 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/addresses")
 @RequiredArgsConstructor
 @Valid
-@Tag(name = "Endereços", description = "Endpoints relacionados a endereços de usuários")
+@Tag(name = "Addresses", description = "Endpoints relacionados a endereços de usuários")
 public class AddressController {
 
     private final AddressService addressService;

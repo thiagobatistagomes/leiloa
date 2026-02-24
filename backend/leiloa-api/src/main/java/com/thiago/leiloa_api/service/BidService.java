@@ -2,6 +2,7 @@ package com.thiago.leiloa_api.service;
 
 import java.math.BigDecimal;
 import java.util.UUID;
+import java.util.Map;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -11,10 +12,12 @@ import org.springframework.transaction.annotation.Transactional;
 import com.thiago.leiloa_api.domain.auction.Auction;
 import com.thiago.leiloa_api.domain.auction.AuctionStatus;
 import com.thiago.leiloa_api.domain.bid.Bid;
+import com.thiago.leiloa_api.domain.notification.NotificationTypeCodes;
 import com.thiago.leiloa_api.domain.user.User;
 import com.thiago.leiloa_api.dto.bid.BidPublicResponseDTO;
 import com.thiago.leiloa_api.dto.bid.BidResponseDTO;
 import com.thiago.leiloa_api.dto.bid.CreateBidDTO;
+import com.thiago.leiloa_api.dto.notification.*;
 import com.thiago.leiloa_api.repository.AuctionRepository;
 import com.thiago.leiloa_api.repository.BidRepository;
 
@@ -28,6 +31,7 @@ public class BidService {
     private final AuctionRepository auctionRepository;
     private final BidRepository bidRepository;
     private final AuthService authService;
+    private final NotificationService notificationService;
 
     @Transactional
     public BidResponseDTO placeBid(CreateBidDTO dto) {
@@ -59,11 +63,37 @@ public class BidService {
             );
         }
 
+        User oldLastBidder = auction.getLastBidder();
+
         Bid bid = Bid.create(auction, bidder, bidValue);
 
         bidRepository.saveAndFlush(bid);
 
+        NotificationCreateDTO notificationDTO = new NotificationCreateDTO(
+            auction.getOwner(),
+            NotificationTypeCodes.NEW_BID,
+            "Novo lance recebido",
+            "Seu leilão '" + auction.getItem().getName() + "' recebeu um novo lance de " + bidValue,
+            null
+        );
+
+        notificationService.createNotification(notificationDTO);
+
         auction.updateAfterBid(bidValue, bidder);
+
+        if (oldLastBidder != null && !oldLastBidder.getId().equals(bidder.getId())) {
+
+            NotificationCreateDTO outbidNotification = new NotificationCreateDTO(
+                oldLastBidder.getId(),
+                NotificationTypeCodes.OUT_BID,
+                "Você foi superado!",
+                "Outro usuário superou seu lance no leilão '"
+                    + auction.getItem().getName() + "'.",
+                Map.of("auctionId", auction.getId().toString())
+            );
+
+            notificationService.createNotification(outbidNotification);
+        }
 
         return BidResponseDTO.fromEntity(bid);
     }

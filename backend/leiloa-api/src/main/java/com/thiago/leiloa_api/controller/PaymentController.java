@@ -191,7 +191,7 @@ public class PaymentController {
     @PreAuthorize("hasRole('ADMIN')")
     @SecurityRequirement(name = "bearerAuth")
     @Operation(
-        summary = "Cancelar pagamento pendente (Admin)",
+        summary = "Cancelar pagamento pendente",
         description = "Permite que administradores cancelem pagamentos ainda pendentes."
     )
     @ApiResponses({

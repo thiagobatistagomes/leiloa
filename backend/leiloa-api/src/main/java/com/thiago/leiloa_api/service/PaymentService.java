@@ -4,7 +4,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
-
+import java.util.Map;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -16,10 +16,12 @@ import com.thiago.leiloa_api.domain.delivery.Delivery;
 import com.thiago.leiloa_api.domain.delivery.DeliveryStatus;
 import com.thiago.leiloa_api.domain.item.Item;
 import com.thiago.leiloa_api.domain.item.ItemStatus;
+import com.thiago.leiloa_api.domain.notification.NotificationTypeCodes;
 import com.thiago.leiloa_api.domain.payment.Payment;
 import com.thiago.leiloa_api.domain.payment.PaymentAddress;
 import com.thiago.leiloa_api.domain.payment.PaymentStatus;
 import com.thiago.leiloa_api.domain.user.User;
+import com.thiago.leiloa_api.dto.notification.NotificationCreateDTO;
 import com.thiago.leiloa_api.dto.payment.*;
 import com.thiago.leiloa_api.repository.*;
 
@@ -39,6 +41,7 @@ public class PaymentService {
     private final AuctionRepository auctionRepository;
     private final ItemRepository itemRepository;
     private final DeliveryRepository deliveryRepository;
+    private final NotificationService notificationService;
 
     private static final Duration PAYMENT_DEADLINE = Duration.ofHours(48);
 
@@ -129,6 +132,15 @@ public class PaymentService {
         payment.setStatus(PaymentStatus.COMPLETED);
         payment.setPaidAt(LocalDateTime.now());
 
+        // Notificar vendedor
+        notificationService.createNotification(new NotificationCreateDTO(
+                payment.getAuction().getOwner(),
+                NotificationTypeCodes.PAYMENT_APPROVED,
+                "Pagamento aprovado",
+                "O pagamento do leilão '" + payment.getAuction().getItem().getName() + "' foi aprovado.",
+                Map.of("paymentId", payment.getId().toString())
+        ));
+
         // Atualiza auction e item
         Auction auction = payment.getAuction();
         auction.setStatus(AuctionStatus.SOLD);
@@ -139,7 +151,7 @@ public class PaymentService {
         auctionRepository.save(auction);
         itemRepository.save(item);
 
-        // CRIAÇÃO AUTOMÁTICA DA ENTREGA
+        // Criação automática da entrega
         if (!deliveryRepository.existsByPayment_Id(payment.getId())) {
 
             Delivery delivery = DeliveryFactory.create(payment, pa);
@@ -160,6 +172,15 @@ public class PaymentService {
         pendings.forEach(payment -> {
             payment.setStatus(PaymentStatus.EXPIRED);
             payment.setExpiredAt(LocalDateTime.now());
+
+            notificationService.createNotification(new NotificationCreateDTO(
+                payment.getAuction().getOwner(), 
+                NotificationTypeCodes.PAYMENT_EXPIRED,
+                "Pagamento expirado",
+                "O pagamento do leilão '" + payment.getAuction().getItem().getName() +
+                    "' expirou e o vencedor não realizou o pagamento.",
+                Map.of("paymentId", payment.getId().toString())
+            ));
 
             Auction auction = payment.getAuction();
             auction.setStatus(AuctionStatus.EXPIRED);
@@ -182,6 +203,18 @@ public class PaymentService {
         }
 
         payment.setStatus(PaymentStatus.CANCELLED);
+
+        Auction auction = payment.getAuction();
+        UUID ownerId = auction.getOwner();
+        String itemName = auction.getItem().getName();
+
+        notificationService.createNotification(new NotificationCreateDTO(
+            ownerId,
+            NotificationTypeCodes.PAYMENT_CANCELLED,
+            "Pagamento cancelado",
+            "O administrador cancelou o pagamento do seu leilão: " + itemName,
+            Map.of("paymentId", payment.getId().toString())
+        ));
 
         return CancelPaymentDTO.fromEntity(payment);
     }

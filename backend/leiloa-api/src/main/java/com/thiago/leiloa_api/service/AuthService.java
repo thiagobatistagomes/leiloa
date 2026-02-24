@@ -3,6 +3,8 @@ package com.thiago.leiloa_api.service;
 import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.UUID;
+import java.util.List;
+
 import java.util.stream.Collectors;
 
 import org.springframework.security.access.AccessDeniedException;
@@ -14,7 +16,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+
 import com.thiago.leiloa_api.config.JwtService;
+
+import com.thiago.leiloa_api.domain.notification.NotificationTypeCodes;
 import com.thiago.leiloa_api.domain.role.Role;
 import com.thiago.leiloa_api.domain.user.User;
 import com.thiago.leiloa_api.domain.user.UserStatus;
@@ -23,12 +28,15 @@ import com.thiago.leiloa_api.dto.auth.LoginDTO;
 import com.thiago.leiloa_api.dto.auth.ReactivateAccountDTO;
 import com.thiago.leiloa_api.dto.auth.RegisterUserDTO;
 import com.thiago.leiloa_api.dto.auth.UpdatePasswordDTO;
+import com.thiago.leiloa_api.dto.device.UserDeviceCreateDTO;
+import com.thiago.leiloa_api.dto.notification.NotificationCreateDTO;
 import com.thiago.leiloa_api.exception.BlockedUserException;
 import com.thiago.leiloa_api.exception.InactiveUserException;
 import com.thiago.leiloa_api.repository.RoleRepository;
 import com.thiago.leiloa_api.repository.UserRepository;
 
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 
 
@@ -43,23 +51,28 @@ public class AuthService {
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final UserDeviceService userDeviceService;
+    private final NotificationService notificationService;
 
     public AuthService(
             AuthenticationManager authenticationManager,
             UserRepository userRepository,
             RoleRepository roleRepository,
             PasswordEncoder passwordEncoder,
-            JwtService jwtService
+            JwtService jwtService,
+            UserDeviceService userDeviceService,
+            NotificationService notificationService
     ) {
         this.authenticationManager = authenticationManager;
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
+        this.userDeviceService = userDeviceService;
+        this.notificationService = notificationService;
     }
 
-    // LOGIN
-    public AuthResponseDTO login(LoginDTO dto) {
+    public AuthResponseDTO login(LoginDTO dto, HttpServletRequest request) {
 
         Authentication authentication =
                 authenticationManager.authenticate(
@@ -90,10 +103,16 @@ public class AuthService {
 
         userRepository.save(user);
 
+        String userAgent = request.getHeader("User-Agent");
+        String deviceType = detectDeviceType(userAgent);
+        String deviceToken = UUID.nameUUIDFromBytes(token.getBytes()).toString(); // Gerar um token único para o dispositivo
+
+        userDeviceService.registerDevice(user, new UserDeviceCreateDTO(deviceType, userAgent, deviceToken));
+
         return buildAuthResponse(user, token);
     }
 
-    // REGISTER (já retorna o token ao registrar)
+    // (já retorna o token ao registrar)
     public AuthResponseDTO register(RegisterUserDTO dto) {
 
         if (userRepository.existsByEmail(dto.getEmail())) {
@@ -113,6 +132,20 @@ public class AuthService {
         user.setRoles(Set.of(roleUser));
 
         userRepository.save(user);
+
+        List<User> admins = userRepository.findAllByRoles_Name("ROLE_ADMIN");
+
+        admins.forEach(admin ->
+            notificationService.createNotification(
+                new NotificationCreateDTO(
+                    admin.getId(),
+                    NotificationTypeCodes.USER_REGISTERED,
+                    "Novo usuário registrado",
+                    "O usuário " + user.getName() + " acabou de se registrar.",
+                    null
+                )
+            )
+        );
 
         CustomUserDetails userDetails = new CustomUserDetails(user);
 
@@ -212,5 +245,21 @@ public class AuthService {
                 user.getEmail(),
                 roles
         );
+    }
+
+    private String detectDeviceType(String userAgent) {
+        if (userAgent == null) return "unknown";
+
+        String ua = userAgent.toLowerCase();
+
+        if (ua.contains("android") || ua.contains("iphone")) {
+            return "mobile";
+        }
+
+        if (ua.contains("ipad") || ua.contains("tablet")) {
+            return "tablet";
+        }
+
+        return "desktop";
     }
 }

@@ -18,6 +18,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 
 
@@ -60,9 +61,10 @@ public class AuthController {
             description = "Credenciais do usuário (email e senha)",
             required = true
         )
-        @RequestBody @Valid LoginDTO request
+        @RequestBody @Valid LoginDTO dto,
+        HttpServletRequest request
     ) {
-        AuthResponseDTO response = authService.login(request);
+        AuthResponseDTO response = authService.login(dto, request);
         return ResponseEntity.ok(response);
     }
 

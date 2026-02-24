@@ -41,6 +41,12 @@ public interface AuctionRepository extends JpaRepository<Auction, UUID>, JpaSpec
         LocalDateTime date
     );
 
+    List<Auction> findByStatusAndEndDateBetween(
+        AuctionStatus status,
+        LocalDateTime from,
+        LocalDateTime to
+    );
+
     // Lock pessimisita para prevenir condições de corrida ao atualizar o lance mais alto
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("""

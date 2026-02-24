@@ -73,6 +73,10 @@ public class Auction {
     private User lastBidder;
 
 
+    public UUID getOwner() {
+        return this.user.getId();
+    }
+
     public boolean isOwnedBy(User user) {
         return this.user.getId().equals(user.getId());
     }
@@ -140,6 +144,8 @@ public class Auction {
     public boolean isFinished() {
         return this.status == AuctionStatus.SOLD;
     }
+
+    
 
 
 }
