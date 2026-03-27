@@ -20,7 +20,7 @@ public interface BidRepository extends JpaRepository<Bid, UUID> {
 
     Page<Bid> findByBidderId(UUID bidderId, Pageable pageable);
 
-    @Query("SELECT DISTINCT b.user.id FROM Bid b WHERE b.auction.id = :auctionId")
+    @Query("SELECT DISTINCT b.bidder.id FROM Bid b WHERE b.auction.id = :auctionId")
     List<UUID> findAllBiddersByAuctionId(UUID auctionId);
 }
 
