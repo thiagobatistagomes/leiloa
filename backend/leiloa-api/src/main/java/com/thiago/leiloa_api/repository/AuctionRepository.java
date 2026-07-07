@@ -25,6 +25,11 @@ public interface AuctionRepository extends JpaRepository<Auction, UUID>, JpaSpec
         List<AuctionStatus> statuses
     );
 
+    List<Auction> findByUser_IdAndStatusIn(
+        UUID userId,
+        List<AuctionStatus> statuses
+    );
+
 
     Page<Auction> findByStatusIn(
         List<AuctionStatus> statuses,

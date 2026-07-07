@@ -113,6 +113,14 @@ public class AuctionService {
                 AuctionStatus.ACTIVE,
                 AuctionStatus.SCHEDULED
             );
+        } else {
+            statuses = statuses.stream()
+                    .filter(status -> status == AuctionStatus.ACTIVE || status == AuctionStatus.SCHEDULED)
+                    .toList();
+        }
+
+        if (statuses.isEmpty()) {
+            return Page.empty(pageable);
         }
 
         var spec = AuctionSpecification.build(
@@ -134,7 +142,8 @@ public class AuctionService {
                 .orElseThrow(() -> new IllegalArgumentException("Leilão não encontrado"));
 
         // Regra de visibilidade
-        if (auction.getStatus() == AuctionStatus.CANCELED) {
+        if (auction.getStatus() == AuctionStatus.CANCELED
+                || auction.getStatus() == AuctionStatus.SUSPENDED) {
             throw new IllegalStateException("Leilão não disponível");
         }
 

@@ -15,7 +15,7 @@ public record BidPublicResponseDTO(
         return new BidPublicResponseDTO(
                 bid.getValue(),
                 bid.getCreatedAt(),
-                "Bidder #" + bid.getBidder().getId().toString().substring(0, 6)
+                bid.getBidder().getName()
         );
     }
 }

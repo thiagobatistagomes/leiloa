@@ -19,6 +19,7 @@ import lombok.NoArgsConstructor;
 public class CommentTreeDTO {
     private UUID id;
     private UUID userId;
+    private String userName;
     private String content;
     private LocalDateTime createdAt;
     private List<CommentTreeDTO> replies = new ArrayList<>();

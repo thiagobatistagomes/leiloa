@@ -6,5 +6,6 @@ public enum AuctionStatus {
     WAITING_PAYMENT,
     SOLD,
     EXPIRED,
+    SUSPENDED,
     CANCELED
 }

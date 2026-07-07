@@ -33,6 +33,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final AuthService authService;
+    private final AuctionLifecycleService auctionLifecycleService;
 
     @Transactional
     public UserResponseDTO deactivateMyAccount() {
@@ -46,6 +47,7 @@ public class UserService {
         user.setStatus(UserStatus.INACTIVE);
         user.setStatusChangedBy(user.getId());
         user.setUpdatedAt(LocalDateTime.now());
+        auctionLifecycleService.suspendActiveAuctionsForUser(user.getId());
         userRepository.save(user);
 
         return UserResponseDTO.fromEntity(user);
@@ -100,6 +102,7 @@ public class UserService {
         user.setStatus(UserStatus.BLOCKED);
         user.setStatusChangedBy(authService.getAuthenticatedUser().getId());
         user.setUpdatedAt(LocalDateTime.now());
+        auctionLifecycleService.suspendActiveAuctionsForUser(user.getId());
         userRepository.save(user);
 
         return UserResponseDTO.fromEntity(user);

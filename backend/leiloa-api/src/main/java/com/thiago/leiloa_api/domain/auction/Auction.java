@@ -100,6 +100,13 @@ public class Auction {
         this.status = AuctionStatus.CANCELED;
     }
 
+    public void suspend() {
+        if (!canBeCancelled()) {
+            throw new IllegalStateException("Leilão não pode ser suspenso.");
+        }
+        this.status = AuctionStatus.SUSPENDED;
+    }
+
     // Esperar pagamento do vencedor
     public void waitForPayment() {
         if (status != AuctionStatus.ACTIVE) {

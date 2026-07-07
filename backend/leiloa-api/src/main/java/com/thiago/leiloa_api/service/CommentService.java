@@ -197,6 +197,7 @@ public class CommentService {
         CommentTreeDTO dto = new CommentTreeDTO(
                 comment.getId(),
                 comment.getUser().getId(),
+                comment.getUser().getName(),
                 comment.getContent(),
                 comment.getCreatedAt(),
                 new ArrayList<>()
