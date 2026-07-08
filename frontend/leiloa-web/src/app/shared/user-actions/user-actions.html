@@ -1,0 +1,94 @@
+<div class="user-actions">
+  <button
+    class="notification-button"
+    type="button"
+    (click)="toggleNotifications($event)"
+    [attr.aria-expanded]="isNotificationsOpen()"
+    aria-haspopup="dialog"
+    aria-label="Abrir prévia das notificações"
+  >
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" />
+    </svg>
+    @if (unreadCount()) {
+      <span>{{ unreadCount() > 9 ? '9+' : unreadCount() }}</span>
+    }
+  </button>
+  <button
+    class="user-button"
+    type="button"
+    (click)="toggle($event)"
+    [attr.aria-expanded]="isOpen()"
+    aria-haspopup="menu"
+    aria-label="Abrir menu do usuário"
+  >
+    <span class="avatar">{{ auth.session()?.email?.slice(0, 1)?.toUpperCase() }}</span>
+    <span class="hamburger" aria-hidden="true"><i></i><i></i><i></i></span>
+  </button>
+  @if (isNotificationsOpen()) {
+    <aside
+      class="notification-preview"
+      aria-label="Prévia das notificações"
+      (click)="$event.stopPropagation()"
+    >
+      <header>
+        <div><span>Novidades</span><strong>Notificações</strong></div>
+        @if (unreadCount()) {
+          <small>{{ unreadCount() }} {{ unreadCount() === 1 ? 'não lida' : 'não lidas' }}</small>
+        }
+      </header>
+      @if (notificationsLoading()) {
+        <p class="notification-preview__state">Carregando notificações…</p>
+      } @else if (notificationPreview().length) {
+        <div class="notification-preview__list">
+          @for (item of notificationPreview(); track item.id) {
+            <a routerLink="/notificacoes" (click)="close()" [class.unread]="!item.readAt">
+              <span class="notification-preview__icon">{{ notificationIcon(item.typeCode) }}</span>
+              <span class="notification-preview__content"
+                ><small
+                  >{{ notificationLabel(item.typeCode) }} ·
+                  {{ notificationDate(item.createdAt) }}</small
+                ><strong>{{ item.title }}</strong
+                ><span>{{ item.message }}</span></span
+              >
+              @if (!item.readAt) {
+                <i aria-label="Não lida"></i>
+              }
+            </a>
+          }
+        </div>
+        <a class="notification-preview__all" routerLink="/notificacoes" (click)="close()"
+          >Ver todas as notificações →</a
+        >
+      } @else {
+        <p class="notification-preview__state">Nenhuma novidade por enquanto.</p>
+      }
+    </aside>
+  }
+  @if (isOpen()) {
+    <div class="user-menu" role="menu" (click)="$event.stopPropagation()">
+      <div class="user-menu__identity">
+        <span>Conta conectada</span><strong>{{ auth.session()?.email }}</strong>
+      </div>
+      <div class="user-menu__group">
+        <span>Minha área</span>
+        <a routerLink="/minha-area" fragment="resumo" role="menuitem" (click)="close()"
+          >Visão geral</a
+        >
+        <a routerLink="/minha-area" fragment="lances" role="menuitem" (click)="close()"
+          >Meus lances</a
+        >
+        <a routerLink="/minha-area" fragment="compras" role="menuitem" (click)="close()"
+          >Compras e entregas</a
+        >
+        <a routerLink="/meus-itens" role="menuitem" (click)="close()">Meus itens e vendas</a>
+      </div>
+      <div class="user-menu__group">
+        <span>Conta</span>
+        <a routerLink="/enderecos" role="menuitem" (click)="close()">Endereços</a>
+        <a routerLink="/conta" role="menuitem" (click)="close()">Configurações</a>
+      </div>
+      <button class="logout" type="button" role="menuitem" (click)="logout()">Sair da conta</button>
+    </div>
+  }
+</div>

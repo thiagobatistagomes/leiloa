@@ -1,0 +1,67 @@
+<app-header />
+<main class="account-page">
+  <header>
+    <p>Sua conta</p>
+    <h1>Configurações</h1>
+    <span>Conectado como {{ auth.session()?.email }}</span>
+  </header>
+  @if (message()) {
+    <p class="message">{{ message() }}</p>
+  }
+  <nav>
+    <a routerLink="/enderecos">Gerenciar endereços →</a
+    ><a routerLink="/notificacoes">Ver notificações →</a>
+  </nav>
+  <div class="settings">
+    <section>
+      <h2>Nome de exibição</h2>
+      <p>Como seu nome aparece nas áreas autenticadas.</p>
+      <form (ngSubmit)="saveName()">
+        <input name="name" [(ngModel)]="name" placeholder="Seu nome completo" required /><button
+          [disabled]="saving === 'name'"
+        >
+          Salvar nome
+        </button>
+      </form>
+    </section>
+    <section>
+      <h2>Telefone</h2>
+      <p>Atualize seu celular com DDD.</p>
+      <form (ngSubmit)="savePhone()">
+        <input
+          name="phone"
+          [(ngModel)]="phone"
+          (input)="formatPhone()"
+          maxlength="15"
+          placeholder="(11) 99999-9999"
+          required
+        /><button [disabled]="saving === 'phone'">Salvar telefone</button>
+      </form>
+    </section>
+    <section>
+      <h2>Senha</h2>
+      <p>Use pelo menos 6 caracteres na nova senha.</p>
+      <form (ngSubmit)="savePassword()">
+        <input
+          name="currentPassword"
+          type="password"
+          [(ngModel)]="currentPassword"
+          placeholder="Senha atual"
+          required
+        /><input
+          name="newPassword"
+          type="password"
+          [(ngModel)]="newPassword"
+          placeholder="Nova senha"
+          minlength="6"
+          required
+        /><button [disabled]="saving === 'password'">Alterar senha</button>
+      </form>
+    </section>
+    <section class="danger-zone">
+      <h2>Desativar conta</h2>
+      <p>Seu acesso será interrompido, mas você poderá reativar a conta pela tela de entrada.</p>
+      <button (click)="deactivate()">Desativar minha conta</button>
+    </section>
+  </div>
+</main>

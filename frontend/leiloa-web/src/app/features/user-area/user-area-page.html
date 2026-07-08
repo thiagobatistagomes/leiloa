@@ -1,0 +1,99 @@
+<app-header />
+<main class="area" id="resumo">
+  <header class="intro">
+    <p>Seu espaço</p>
+    <h1>Minha área</h1>
+    <span>Acompanhe lances, pagamentos e entregas em um só lugar.</span>
+  </header>
+  @if (loading()) {
+    <div class="state">Organizando suas informações…</div>
+  } @else {
+    @if (pending().length) {
+      <section class="attention">
+        <div>
+          <p>Precisa da sua atenção</p>
+          <h2>
+            {{ pending().length }}
+            {{ pending().length === 1 ? 'pagamento pendente' : 'pagamentos pendentes' }}
+          </h2>
+        </div>
+        <div>
+          @for (payment of pending(); track payment.id) {
+            <article>
+              <span>{{ auctionTitle(payment) }}</span
+              ><strong>{{ payment.value | currency: 'BRL' }}</strong
+              ><small
+                >Pagar até:
+                @if (paymentDueAt(payment); as dueAt) {
+                  {{ dueAt | date: 'dd/MM/yyyy, HH:mm' }}
+                } @else {
+                  prazo indisponível
+                }
+              </small>
+              ><a [routerLink]="['/pagamentos', payment.id]">Finalizar pagamento →</a>
+            </article>
+          }
+        </div>
+      </section>
+    }
+    <section id="lances">
+      <div class="section-title">
+        <div>
+          <p>Participação</p>
+          <h2>Meus lances</h2>
+        </div>
+        <a routerLink="/leiloes">Explorar leilões</a>
+      </div>
+      @if (bids().length) {
+        <div class="table">
+          <div class="row head">
+            <span>Leilão</span><span>Valor</span><span>Data</span><span></span>
+          </div>
+          @for (bid of bids(); track bid.id) {
+            <div class="row">
+              <a [routerLink]="['/leiloes', bid.auctionId]">{{ auctionTitle(bid) }}</a
+              ><strong>{{ bid.value | currency: 'BRL' }}</strong
+              ><span>{{ bid.createdAt | date: 'dd/MM/yyyy, HH:mm' }}</span
+              ><a [routerLink]="['/leiloes', bid.auctionId]">Ver</a>
+            </div>
+          }
+        </div>
+      } @else {
+        <p class="empty">Você ainda não fez nenhum lance.</p>
+      }
+    </section>
+    <section id="compras">
+      <div class="section-title">
+        <div>
+          <p>Histórico</p>
+          <h2>Compras e entregas</h2>
+        </div>
+      </div>
+      @if (payments().length) {
+        <div class="cards">
+          @for (payment of payments(); track payment.id) {
+            <article>
+              <div>
+                <span class="badge">{{ paymentLabel(payment) }}</span
+                ><small>{{ payment.createdAt | date: 'dd/MM/yyyy' }}</small>
+              </div>
+              <h3>{{ auctionTitle(payment) }}</h3>
+              <strong>{{ payment.value | currency: 'BRL' }}</strong>
+              @if (deliveries()[payment.id]; as delivery) {
+                <p>
+                  Entrega: {{ deliveryLabel(delivery.status) }}
+                  @if (delivery.trackingCode) {
+                    · {{ delivery.trackingCode }}
+                  }
+                </p>
+              }
+              <a [routerLink]="['/leiloes', payment.auctionId]">Ver leilão</a>
+            </article>
+          }
+        </div>
+      } @else {
+        <p class="empty">Seu histórico de compras aparecerá aqui.</p>
+      }
+    </section>
+  }
+</main>
