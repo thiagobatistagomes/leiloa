@@ -1,0 +1,89 @@
+<app-header />
+<main class="addresses-page">
+  <header>
+    <div>
+      <p>Configurações</p>
+      <h1>Endereços</h1>
+      <span>Gerencie os destinos usados nas suas compras.</span>
+    </div>
+    <button (click)="open()">+ Novo endereço</button>
+  </header>
+  @if (message()) {
+    <p class="message">{{ message() }}</p>
+  }
+  @if (showForm) {
+    <section class="form-panel">
+      <div>
+        <h2>{{ editingId ? 'Editar endereço' : 'Novo endereço' }}</h2>
+        <button (click)="showForm = false">Fechar</button>
+      </div>
+      <form (ngSubmit)="save()">
+        <label
+          >Apelido<input
+            name="label"
+            [(ngModel)]="form.label"
+            placeholder="Casa, trabalho…"
+            required /></label
+        ><label
+          >CEP<input
+            name="postalCode"
+            [(ngModel)]="form.postalCode"
+            maxlength="9"
+            (input)="formatPostalCode()"
+            required /></label
+        ><label class="wide">Rua<input name="street" [(ngModel)]="form.street" required /></label
+        ><label>Número<input name="number" [(ngModel)]="form.number" required /></label
+        ><label>Complemento<input name="complement" [(ngModel)]="form.complement" /></label
+        ><label>Bairro<input name="district" [(ngModel)]="form.district" required /></label
+        ><label>Cidade<input name="city" [(ngModel)]="form.city" required /></label
+        ><label>Estado<input name="state" [(ngModel)]="form.state" maxlength="2" required /></label
+        ><label>País<input name="country" [(ngModel)]="form.country" required /></label
+        ><label class="check"
+          ><input type="checkbox" name="default" [(ngModel)]="form.isDefault" /> Usar como endereço
+          padrão</label
+        ><button class="primary" [disabled]="submitting">
+          {{ submitting ? 'Salvando…' : 'Salvar endereço' }}
+        </button>
+      </form>
+    </section>
+  }
+  <section class="content">
+    @if (loading) {
+      <div class="empty">Carregando…</div>
+    } @else if (addresses().length) {
+      <div class="grid">
+        @for (address of addresses(); track address.id) {
+          <article [class.default]="address.isDefault">
+            <div>
+              <span>{{ address.label }}</span>
+              @if (address.isDefault) {
+                <small>Padrão</small>
+              }
+            </div>
+            <h2>{{ address.street }}, {{ address.number }}</h2>
+            <p>
+              @if (address.complement) {
+                {{ address.complement }} ·
+              }
+              {{ address.district }}<br />{{ address.city }}/{{ address.state }} ·
+              {{ address.postalCode }}<br />{{ address.country }}
+            </p>
+            <footer>
+              @if (!address.isDefault) {
+                <button (click)="setDefault(address)">Tornar padrão</button>
+              }
+              <button (click)="open(address)">Editar</button
+              ><button class="danger" (click)="remove(address)">Excluir</button>
+            </footer>
+          </article>
+        }
+      </div>
+    } @else {
+      <div class="empty">
+        <h2>Nenhum endereço cadastrado.</h2>
+        <p>Você precisará de um endereço para concluir pagamentos.</p>
+        <button (click)="open()">Cadastrar endereço</button>
+      </div>
+    }
+  </section>
+</main>
