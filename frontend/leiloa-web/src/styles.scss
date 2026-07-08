@@ -1,0 +1,197 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;1,500&display=swap');
+
+:root {
+  /* Paleta principal */
+  --navy: #111e2b;
+  --cream: #efe0c4;
+  --terracotta: #bd694d;
+  --terracotta-dark: #9b523c;
+  --terracotta-light: #d88a6f;
+  --terracotta-hover: #ca7659;
+  --navy-hover: #1b2d3d;
+  --white: #ffffff;
+
+  /* Superfícies, textos e estados */
+  --page: #f7f4ed;
+  --surface: #fcfaf5;
+  --text-muted: #6f746f;
+  --text-on-dark-muted: #a5b0b5;
+  --text-on-dark-subtle: #8fa0aa;
+  --text-on-dark-soft: #81919b;
+  --text-subtle: #929590;
+  --text-placeholder: #a3a39d;
+  --line-dark: rgb(239 224 196 / 14%);
+  --line-light: #dcd8ce;
+  --danger: #a34d43;
+  --danger-surface: #f4e7e1;
+  --danger-text: #743a34;
+
+  /* Elementos auxiliares */
+  --avatar-primary: #d8c7ad;
+  --avatar-secondary: #9dadad;
+  --media-placeholder: #d9d1c5;
+  --placeholder-light: #aeb7b4;
+  --placeholder-dark: #263f4d;
+  --status-neutral: #9a927e;
+  --skeleton-base: #e8e4dc;
+  --skeleton-highlight: #f5f2ec;
+
+  /* Transparências e elevações */
+  --cream-alpha-025: rgb(239 224 196 / 2.5%);
+  --cream-alpha-08: rgb(239 224 196 / 8%);
+  --cream-alpha-13: rgb(239 224 196 / 13%);
+  --cream-alpha-36: rgb(239 224 196 / 36%);
+  --cream-alpha-38: rgb(239 224 196 / 38%);
+  --cream-alpha-75: rgb(239 224 196 / 75%);
+  --navy-alpha-10: rgb(17 30 43 / 10%);
+  --navy-alpha-22: rgb(17 30 43 / 22%);
+  --terracotta-alpha-10: rgb(189 105 77 / 10%);
+  --terracotta-alpha-16: rgb(189 105 77 / 16%);
+  --white-alpha-45: rgb(255 255 255 / 45%);
+  --white-alpha-58: rgb(255 255 255 / 58%);
+  --white-alpha-70: rgb(255 255 255 / 70%);
+  --surface-alpha-90: rgb(250 248 243 / 90%);
+  --shadow-card: 0 20px 50px var(--navy-alpha-10);
+  --shadow-floating: 0 18px 60px rgb(0 0 0 / 18%);
+
+  /* Tipografia */
+  --font-sans: 'DM Sans', 'Segoe UI', sans-serif;
+  --font-display: 'Playfair Display', Georgia, serif;
+}
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 20px;
+}
+body {
+  min-width: 320px;
+  margin: 0;
+  background: var(--page);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--terracotta);
+  outline-offset: 4px;
+}
+img {
+  max-width: 100%;
+}
+
+/* Breakpoints da landing page (globais para respeitar o orçamento de estilo por componente). */
+@media (max-width: 1000px) {
+  .hero {
+    grid-template-columns: 1fr 0.9fr;
+    gap: 40px;
+  }
+  .hero__visual {
+    min-height: 490px;
+  }
+  .hero__lot {
+    right: -10px;
+  }
+  .auction-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .cta {
+    padding: 65px 50px;
+  }
+}
+@media (max-width: 760px) {
+  .hero {
+    grid-template-columns: 1fr;
+    padding-top: 58px;
+  }
+  .hero__visual {
+    min-height: 470px;
+  }
+  .hero__lot {
+    right: 14px;
+  }
+  .trust-strip {
+    grid-template-columns: 1fr;
+    padding-bottom: 24px;
+  }
+  .trust-strip article,
+  .trust-strip article:first-child {
+    padding: 24px 0;
+    border-right: 0;
+    border-bottom: 1px solid var(--line-dark);
+  }
+  .section-heading {
+    align-items: start;
+    flex-direction: column;
+  }
+  .auction-grid {
+    grid-template-columns: 1fr;
+  }
+  .how {
+    grid-template-columns: 1fr;
+    gap: 55px;
+  }
+  .cta {
+    align-items: start;
+    flex-direction: column;
+    padding: 52px 32px;
+  }
+  footer {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  footer nav {
+    flex-wrap: wrap;
+  }
+}
+@media (max-width: 480px) {
+  .hero,
+  .trust-strip,
+  .section,
+  footer {
+    width: min(100% - 28px, 1240px);
+  }
+  .hero {
+    min-height: auto;
+    padding: 50px 0 64px;
+  }
+  h1 {
+    font-size: clamp(3rem, 15vw, 4rem);
+  }
+  .hero__actions {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .hero__visual {
+    min-height: 390px;
+  }
+  .hero__lot {
+    right: 10px;
+    bottom: 20px;
+    width: 230px;
+  }
+  .featured,
+  .how {
+    padding: 82px 0;
+  }
+  .cta {
+    width: 100%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *:before,
+  *:after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
