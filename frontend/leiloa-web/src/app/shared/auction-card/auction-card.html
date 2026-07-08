@@ -1,0 +1,39 @@
+<article class="auction-card">
+  <div class="auction-card__media">
+    @if (!auction().imageUrl || imageFailed()) {
+      <div class="auction-card__placeholder" aria-hidden="true"><span></span></div>
+    } @else {
+      <div class="auction-card__image-loading" aria-hidden="true"></div>
+      <img
+        [src]="auction().imageUrl!"
+        alt=""
+        [attr.loading]="priority() ? 'eager' : 'lazy'"
+        [attr.fetchpriority]="priority() ? 'high' : 'auto'"
+        decoding="async"
+        sizes="(max-width: 700px) 100vw, (max-width: 1050px) 50vw, 33vw"
+        (error)="onImageError()"
+      />
+    }
+    <span class="status" [class.status--active]="auction().status === 'ACTIVE'"
+      ><i></i>{{ statusLabel }}</span
+    >
+  </div>
+  <div class="auction-card__body">
+    <p class="auction-card__eyebrow">
+      {{ datePrefix }}
+      {{ displayDate | date: 'dd MMM, HH:mm' }}
+    </p>
+    <h3>{{ auction().itemName }}</h3>
+    <div class="auction-card__footer">
+      <div>
+        <span>Lance atual</span
+        ><strong>{{ auction().currentPrice | currency: 'BRL' : 'symbol' : '1.0-0' }}</strong>
+      </div>
+      <a
+        [routerLink]="['/leiloes', auction().auctionId]"
+        [attr.aria-label]="'Ver ' + auction().itemName"
+        ><span aria-hidden="true">&nearr;</span></a
+      >
+    </div>
+  </div>
+</article>

@@ -1,0 +1,58 @@
+<app-header />
+<main class="page-shell">
+  <header class="page-intro">
+    <p class="eyebrow">Descobertas em andamento</p>
+    <h1>Leilões para acompanhar <em>de perto.</em></h1>
+    <p>Explore peças únicas, confira os detalhes e participe com segurança.</p>
+  </header>
+  <form class="filters" (ngSubmit)="load()">
+    <label
+      ><span>Buscar</span><input name="search" [(ngModel)]="search" placeholder="Nome do item"
+    /></label>
+    <label
+      ><span>Status</span
+      ><select name="status" [(ngModel)]="status">
+        <option value="">Todos disponíveis</option>
+        <option value="ACTIVE">Ao vivo</option>
+        <option value="SCHEDULED">Em breve</option>
+        <option value="SOLD">Vendidos</option>
+      </select></label
+    >
+    <label
+      ><span>Categoria</span
+      ><select name="category" [(ngModel)]="categoryId">
+        <option value="">Todas</option>
+        @for (category of categories(); track category.id) {
+          <option [value]="category.id">{{ category.name }}</option>
+        }
+      </select></label
+    >
+    <button type="submit">Aplicar filtros</button>
+  </form>
+  @if (loading()) {
+    <div class="state">Buscando boas histórias…</div>
+  } @else if (error()) {
+    <div class="state">
+      <h2>Não foi possível carregar os leilões.</h2>
+      <button (click)="load()">Tentar novamente</button>
+    </div>
+  } @else if (!auctions().length) {
+    <div class="state">
+      <h2>Nenhum leilão encontrado.</h2>
+      <p>Tente remover algum filtro.</p>
+    </div>
+  } @else {
+    <section class="auction-grid">
+      @for (auction of auctions(); track auction.auctionId; let index = $index) {
+        <app-auction-card [auction]="auction" [priority]="index < 3" />
+      }
+    </section>
+  }
+  @if (totalPages() > 1) {
+    <nav class="pagination" aria-label="Paginação">
+      <button [disabled]="page() === 0" (click)="load(page() - 1)">Anterior</button
+      ><span>Página {{ page() + 1 }} de {{ totalPages() }}</span
+      ><button [disabled]="page() + 1 >= totalPages()" (click)="load(page() + 1)">Próxima</button>
+    </nav>
+  }
+</main>

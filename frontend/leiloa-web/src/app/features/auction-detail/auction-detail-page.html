@@ -1,0 +1,213 @@
+<app-header />
+<main class="detail-shell">
+  @if (loading()) {
+    <div class="state">Carregando o lote…</div>
+  } @else if (error()) {
+    <div class="state">
+      <h1>{{ error() }}</h1>
+      <a routerLink="/leiloes">Voltar ao catálogo</a>
+    </div>
+  } @else if (auction(); as item) {
+    <a class="back" routerLink="/leiloes">← Todos os leilões</a>
+    <section class="hero-detail">
+      <div class="media">
+        @if (item.imageUrl) {
+          <img [src]="item.imageUrl" [alt]="item.itemName" />
+        } @else {
+          <span aria-hidden="true">◇</span>
+        }
+      </div>
+      <div class="summary">
+        <p class="eyebrow">
+          {{
+            item.status === 'ACTIVE'
+              ? 'Leilão ao vivo'
+              : item.status === 'SCHEDULED'
+                ? 'Em breve'
+                : item.status === 'SOLD'
+                  ? 'Vendido'
+                  : 'Leilão encerrado'
+          }}
+        </p>
+        <h1>{{ item.itemName }}</h1>
+        <p class="description">
+          {{ item.itemDescription || 'Uma peça selecionada para encontrar uma nova história.' }}
+        </p>
+        <dl>
+          <div>
+            <dt>Lance atual</dt>
+            <dd>{{ item.currentPrice | currency: 'BRL' }}</dd>
+          </div>
+          <div>
+            <dt>Incremento mínimo</dt>
+            <dd>{{ item.minIncrement | currency: 'BRL' }}</dd>
+          </div>
+          <div>
+            <dt>{{ item.status === 'SCHEDULED' ? 'Início' : 'Encerramento' }}</dt>
+            <dd>
+              {{
+                (item.status === 'SCHEDULED' ? item.startDate : item.endDate)
+                  | date: 'dd/MM/yyyy, HH:mm'
+              }}
+            </dd>
+          </div>
+          <div>
+            <dt>Vendedor</dt>
+            <dd>{{ item.sellerName }}</dd>
+          </div>
+        </dl>
+        @if (item.status === 'ACTIVE') {
+          @if (auth.isAuthenticated()) {
+            <form class="bid-box" (ngSubmit)="placeBid()">
+              <label for="bid">Seu lance (mínimo {{ minimumBid() | currency: 'BRL' }})</label>
+              <div>
+                <input
+                  id="bid"
+                  name="bid"
+                  type="number"
+                  [(ngModel)]="bidValue"
+                  [min]="minimumBid()"
+                  [step]="item.minIncrement"
+                  required
+                /><button [disabled]="submittingBid">
+                  {{ submittingBid ? 'Enviando…' : 'Fazer lance' }}
+                </button>
+              </div>
+            </form>
+          } @else {
+            <a
+              class="login-cta"
+              routerLink="/entrar"
+              [queryParams]="{ returnUrl: '/leiloes/' + item.auctionId }"
+              >Entre para participar →</a
+            >
+          }
+        }
+        @if (actionMessage()) {
+          <p class="action-message" role="status">{{ actionMessage() }}</p>
+        }
+      </div>
+    </section>
+
+    <section class="bidding-section" aria-labelledby="bids-title">
+      <header>
+        <p class="eyebrow">Movimento do lote</p>
+        <h2 id="bids-title">Histórico de lances</h2>
+        <p>Acompanhe cada movimentação deste leilão.</p>
+      </header>
+      <div class="bids-panel">
+        @if (bids().length) {
+          <ol class="bid-list">
+            @for (bid of bids(); track bid.createdAt; let index = $index) {
+              <li [class.latest]="index === 0">
+                <span class="bid-position">{{
+                  index === 0 ? 'Último lance' : '#' + (bids().length - index)
+                }}</span
+                ><span class="bidder-avatar">{{ initial(bid.bidder ?? 'U') }}</span
+                ><span class="bidder"
+                  ><strong>{{ bid.bidder }}</strong
+                  ><small>{{ bid.createdAt | date: 'dd/MM/yyyy, HH:mm' }}</small></span
+                ><strong class="bid-value">{{ bid.value | currency: 'BRL' }}</strong>
+              </li>
+            }
+          </ol>
+        } @else {
+          <p class="empty">Ainda não há lances. Que tal inaugurar?</p>
+        }
+      </div>
+    </section>
+
+    <section class="comments-section" aria-labelledby="comments-title">
+      <header>
+        <p class="eyebrow">Conversa</p>
+        <h2 id="comments-title">Perguntas e comentários</h2>
+        <p>Converse com a comunidade e tire dúvidas sobre o lote.</p>
+      </header>
+      @if (auth.isAuthenticated()) {
+        <form class="comment-form" (ngSubmit)="submitComment()">
+          <span class="current-avatar">{{ auth.session()?.email?.slice(0, 1)?.toUpperCase() }}</span
+          ><textarea
+            name="comment"
+            [(ngModel)]="comment"
+            maxlength="1000"
+            placeholder="Adicione um comentário…"
+            required
+          ></textarea
+          ><button [disabled]="submittingComment || !comment.trim()">Comentar</button>
+        </form>
+        @if (comments().length) {
+          <div class="comments">
+            <ng-template #thread let-entry let-depth="depth">
+              <article class="comment" [style.--thread-depth]="depth">
+                <span class="comment__avatar">{{ initial(entry.userName) }}</span>
+                <div class="comment__content">
+                  <div class="comment__meta">
+                    <strong>{{ entry.userName }}</strong>
+                    @if (isMine(entry)) {
+                      <span>Você</span>
+                    }
+                    <time>{{ entry.createdAt | date: 'dd/MM/yyyy, HH:mm' }}</time>
+                  </div>
+                  <p>{{ entry.content }}</p>
+                  <div class="comment__actions">
+                    <button type="button" (click)="toggleReply(entry.id)">Responder</button>
+                    @if (isMine(entry)) {
+                      <button class="delete" type="button" (click)="deleteComment(entry)">
+                        Excluir
+                      </button>
+                    }
+                  </div>
+                  @if (activeReplyId() === entry.id) {
+                    <form class="reply-form" (ngSubmit)="submitReply(entry.id)">
+                      <textarea
+                        name="reply"
+                        [ngModel]="replyDraft()"
+                        (ngModelChange)="replyDraft.set($event)"
+                        maxlength="1000"
+                        [placeholder]="'Responder a ' + entry.userName"
+                        required
+                      ></textarea>
+                      <div>
+                        <button type="button" (click)="toggleReply(entry.id)">Cancelar</button
+                        ><button
+                          class="primary"
+                          [disabled]="submittingComment || !replyDraft().trim()"
+                        >
+                          Responder
+                        </button>
+                      </div>
+                    </form>
+                  }
+                  @if (entry.replies?.length) {
+                    <div class="replies">
+                      @for (reply of entry.replies; track reply.id) {
+                        <ng-container
+                          *ngTemplateOutlet="
+                            thread;
+                            context: { $implicit: reply, depth: depth + 1 }
+                          "
+                        />
+                      }
+                    </div>
+                  }
+                </div>
+              </article>
+            </ng-template>
+            @for (entry of comments(); track entry.id) {
+              <ng-container *ngTemplateOutlet="thread; context: { $implicit: entry, depth: 0 }" />
+            }
+          </div>
+        } @else {
+          <p class="empty">Nenhum comentário ainda. Comece a conversa.</p>
+        }
+      } @else {
+        <div class="comments-login">
+          <p>Entre na sua conta para ver a conversa e responder comentários.</p>
+          <a routerLink="/entrar" [queryParams]="{ returnUrl: '/leiloes/' + item.auctionId }"
+            >Entrar para comentar</a
+          >
+        </div>
+      }
+    </section>
+  }
+</main>

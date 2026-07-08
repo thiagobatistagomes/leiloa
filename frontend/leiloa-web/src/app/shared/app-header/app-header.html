@@ -1,0 +1,18 @@
+<header class="app-header">
+  <a class="brand" routerLink="/"
+    ><span class="brand__mark"><i></i><i></i></span>leiloa</a
+  >
+  <nav aria-label="Navegacao principal">
+    <a routerLink="/leiloes" routerLinkActive="active">Leil&otilde;es</a>
+    @if (auth.isAdmin()) {
+      <a routerLink="/admin" routerLinkActive="active">Admin</a>
+    }
+  </nav>
+  <div class="actions">
+    @if (auth.isAuthenticated()) {
+      <app-user-actions />
+    } @else {
+      <a routerLink="/entrar">Entrar</a><a class="cta" routerLink="/cadastro">Criar conta</a>
+    }
+  </div>
+</header>

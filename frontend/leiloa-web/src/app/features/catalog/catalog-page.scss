@@ -1,0 +1,122 @@
+:host {
+  display: block;
+  min-height: 100vh;
+  background: var(--page);
+}
+.page-shell {
+  width: min(100% - 40px, 1240px);
+  margin: auto;
+  padding: 70px 0 100px;
+}
+.page-intro {
+  max-width: 750px;
+}
+.eyebrow {
+  color: var(--terracotta-dark);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+.page-intro h1 {
+  margin: 12px 0 18px;
+  color: var(--navy);
+  font-family: var(--font-display);
+  font-size: clamp(2.8rem, 5vw, 4.8rem);
+  font-weight: 500;
+  line-height: 1;
+}
+.page-intro em {
+  color: var(--terracotta);
+  font-weight: 400;
+}
+.page-intro > p:last-child {
+  color: var(--text-muted);
+}
+.filters {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr auto;
+  gap: 12px;
+  align-items: end;
+  margin: 46px 0 35px;
+  padding: 22px;
+  background: var(--surface);
+  border: 1px solid var(--line-light);
+  border-radius: 5px;
+}
+label {
+  display: grid;
+  gap: 7px;
+  color: var(--navy);
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+input,
+select {
+  height: 46px;
+  padding: 0 12px;
+  border: 1px solid var(--line-light);
+  background: var(--white);
+  color: var(--navy);
+  font: inherit;
+}
+.filters button,
+.state button,
+.pagination button {
+  min-height: 46px;
+  padding: 0 18px;
+  border: 0;
+  background: var(--navy);
+  color: var(--cream);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+.auction-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+.state {
+  display: grid;
+  min-height: 300px;
+  place-items: center;
+  align-content: center;
+  text-align: center;
+  color: var(--text-muted);
+}
+.state h2 {
+  color: var(--navy);
+  font-family: var(--font-display);
+}
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 18px;
+  margin-top: 38px;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+.pagination button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+@media (max-width: 900px) {
+  .filters {
+    grid-template-columns: 1fr 1fr;
+  }
+  .auction-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 620px) {
+  .page-shell {
+    width: min(100% - 28px, 1240px);
+    padding-top: 50px;
+  }
+  .filters,
+  .auction-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,100 @@
+:host {
+  display: block;
+  background: var(--navy);
+}
+.app-header {
+  width: min(100% - 40px, 1240px);
+  min-height: 76px;
+  margin: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 28px;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--cream);
+  font-family: var(--font-display);
+  font-size: 1.55rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+.brand__mark {
+  position: relative;
+  width: 29px;
+  height: 29px;
+  border: 1px solid var(--cream-alpha-38);
+  border-radius: 50%;
+}
+.brand__mark i {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  top: 8px;
+  border: 2px solid var(--terracotta);
+  border-radius: 50%;
+}
+.brand__mark i:first-child {
+  left: 4px;
+}
+.brand__mark i:last-child {
+  right: 4px;
+}
+nav,
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+a,
+button {
+  border: 0;
+  background: transparent;
+  color: var(--text-on-dark-muted);
+  font: inherit;
+  font-size: 0.8rem;
+  text-decoration: none;
+  cursor: pointer;
+}
+nav a:hover,
+nav a.active,
+.actions a:hover,
+button:hover {
+  color: var(--cream);
+}
+.cta {
+  padding: 10px 15px;
+  border: 1px solid var(--cream-alpha-36);
+  border-radius: 999px;
+  color: var(--cream);
+}
+@media (max-width: 760px) {
+  nav {
+    order: 3;
+    width: 100%;
+    justify-content: center;
+    padding-bottom: 14px;
+  }
+  .app-header {
+    flex-wrap: wrap;
+    padding-top: 15px;
+  }
+  .actions {
+    gap: 12px;
+  }
+}
+@media (max-width: 480px) {
+  .app-header {
+    width: min(100% - 24px, 1240px);
+  }
+  nav {
+    gap: 15px;
+    overflow: auto;
+    justify-content: flex-start;
+  }
+  .cta {
+    display: none;
+  }
+}
