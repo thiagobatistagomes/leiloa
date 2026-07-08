@@ -1,0 +1,85 @@
+<app-header />
+<main class="checkout">
+  <a routerLink="/minha-area">Voltar para minha area</a>
+  @if (loading()) {
+    <div class="state">Carregando pagamento...</div>
+  } @else if (error() && !payment()) {
+    <div class="state">
+      <h1>{{ error() }}</h1>
+    </div>
+  } @else if (payment(); as item) {
+    <header>
+      <p>Etapa final</p>
+      <h1>Finalizar pagamento</h1>
+      <span>Revise o valor e escolha o endereco de entrega.</span>
+    </header>
+    <div class="layout">
+      <section>
+        <h2>Endereco de entrega</h2>
+        @if (addresses().length) {
+          <div class="addresses">
+            @for (address of addresses(); track address.id) {
+              <label [class.selected]="selectedAddress === address.id"
+                ><input
+                  type="radio"
+                  name="address"
+                  [(ngModel)]="selectedAddress"
+                  [value]="address.id"
+                /><span
+                  ><strong
+                    >{{ address.label }}
+                    @if (address.isDefault) {
+                      - padrao
+                    }</strong
+                  >{{ address.street }}, {{ address.number
+                  }}<small
+                    >{{ address.district }} - {{ address.city }}/{{ address.state }} -
+                    {{ address.postalCode }}</small
+                  ></span
+                ></label
+              >
+            }
+          </div>
+          <label class="note"
+            >Observacao para entrega<textarea
+              [(ngModel)]="referenceNote"
+              placeholder="Ex.: deixar na portaria"
+            ></textarea>
+          </label>
+        } @else {
+          <div class="missing">
+            <p>Cadastre um endereco antes de continuar.</p>
+            <a routerLink="/enderecos">Cadastrar endereco</a>
+          </div>
+        }
+      </section>
+      <aside>
+        <p>Resumo</p>
+        <h2>{{ auctionTitle(item) }}</h2>
+        <dl>
+          <div>
+            <dt>Valor arrematado</dt>
+            <dd>{{ item.value | currency: 'BRL' }}</dd>
+          </div>
+          <div>
+            <dt>Pagar até</dt>
+            <dd>
+              @if (paymentDueAt(item); as dueAt) {
+                {{ dueAt | date: 'dd/MM/yyyy, HH:mm' }}
+              } @else {
+                Prazo indisponível
+              }
+            </dd>
+          </div>
+        </dl>
+        <button (click)="confirm()" [disabled]="!selectedAddress || processing">
+          {{ processing ? 'Processando...' : 'Confirmar pagamento' }}
+        </button>
+        @if (error()) {
+          <small class="error">{{ error() }}</small>
+        }
+        <small>Ao confirmar, o backend aprova o pagamento e inicia a preparacao da entrega.</small>
+      </aside>
+    </div>
+  }
+</main>
