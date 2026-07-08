@@ -1,0 +1,49 @@
+<app-header />
+<main class="notifications-page">
+  <header>
+    <div>
+      <p>Atualizações</p>
+      <h1>Notificações</h1>
+      <span>Acompanhe lances, pagamentos e etapas importantes.</span>
+    </div>
+    <button (click)="readAll()" [disabled]="!notifications().length">
+      Marcar todas como lidas
+    </button>
+  </header>
+
+  @if (loading()) {
+    <div class="state">Carregando…</div>
+  } @else if (error()) {
+    <div class="state">{{ error() }}</div>
+  } @else if (notifications().length) {
+    <section>
+      @for (item of notifications(); track item.id) {
+        <article [class.unread]="!item.readAt" (click)="read(item)">
+          <span class="notification-icon" aria-hidden="true">
+            {{ notificationIcon(item.typeCode) }}
+          </span>
+          <div>
+            <small>
+              {{ notificationLabel(item.typeCode) }} · {{ notificationDate(item.createdAt) }}
+            </small>
+            <h2>{{ item.title }}</h2>
+            <p>{{ item.message }}</p>
+            @if (auctionId(item); as id) {
+              <a [routerLink]="['/leiloes', id]" (click)="$event.stopPropagation()">
+                Ver leilão →
+              </a>
+            }
+          </div>
+          @if (!item.readAt) {
+            <button (click)="read(item); $event.stopPropagation()">Marcar como lida</button>
+          }
+        </article>
+      }
+    </section>
+  } @else {
+    <div class="state">
+      <h2>Tudo tranquilo por aqui.</h2>
+      <p>Suas novas notificações aparecerão nesta página.</p>
+    </div>
+  }
+</main>
