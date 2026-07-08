@@ -1,0 +1,143 @@
+<main class="auth-page">
+  <section class="auth-intro" aria-labelledby="auth-intro-title">
+    <a class="brand" routerLink="/" aria-label="Leiloa, voltar para o início">
+      <span class="brand__mark" aria-hidden="true"><span></span><span></span></span>
+      <span>leiloa</span>
+    </a>
+
+    <div class="auth-intro__copy">
+      <p class="eyebrow"><span></span> Curadoria, descoberta e confiança</p>
+      <h1 id="auth-intro-title">
+        @if (isLogin) {
+          Sua próxima história <em>continua aqui.</em>
+        } @else {
+          Objetos especiais pedem <em>novos olhares.</em>
+        }
+      </h1>
+      <p>
+        @if (isLogin) {
+          Acompanhe seus lances, vendas e descobertas em um só lugar.
+        } @else {
+          Crie sua conta para comprar, vender e acompanhar cada etapa com clareza.
+        }
+      </p>
+    </div>
+
+    <p class="auth-intro__note"><span>◇</span> Uma jornada segura, do cadastro à entrega.</p>
+  </section>
+
+  <section class="auth-panel" [attr.aria-labelledby]="isLogin ? 'login-title' : 'register-title'">
+    <div class="auth-panel__content">
+      <a class="back-link" routerLink="/"><span aria-hidden="true">←</span> Voltar para o início</a>
+
+      <header>
+        <p>{{ isLogin ? 'Bem-vindo de volta' : 'Comece por aqui' }}</p>
+        <h2 [id]="isLogin ? 'login-title' : 'register-title'">
+          {{ isLogin ? 'Entre na sua conta' : 'Crie sua conta' }}
+        </h2>
+        <span>
+          {{ isLogin ? 'Ainda não faz parte?' : 'Já possui uma conta?' }}
+          <a [routerLink]="isLogin ? '/cadastro' : '/entrar'">
+            {{ isLogin ? 'Cadastre-se' : 'Entre agora' }}
+          </a>
+        </span>
+      </header>
+
+      <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        @if (!isLogin) {
+          <div class="field">
+            <label for="name">Nome completo</label>
+            <input
+              id="name"
+              type="text"
+              formControlName="name"
+              autocomplete="name"
+              placeholder="Como podemos chamar você?"
+            />
+            @if (fieldError('name')) {
+              <small>{{ fieldError('name') }}</small>
+            }
+          </div>
+
+          <div class="field">
+            <label for="phoneNumber">Celular</label>
+            <input
+              id="phoneNumber"
+              type="tel"
+              formControlName="phoneNumber"
+              autocomplete="tel"
+              inputmode="tel"
+              maxlength="15"
+              placeholder="(11) 99999-9999"
+              (input)="formatPhone()"
+            />
+            @if (fieldError('phoneNumber')) {
+              <small>{{ fieldError('phoneNumber') }}</small>
+            }
+          </div>
+        }
+
+        <div class="field">
+          <label for="email">E-mail</label>
+          <input
+            id="email"
+            type="email"
+            formControlName="email"
+            autocomplete="email"
+            placeholder="voce@exemplo.com"
+          />
+          @if (fieldError('email')) {
+            <small>{{ fieldError('email') }}</small>
+          }
+        </div>
+
+        <div class="field">
+          <label for="password">Senha</label>
+          <div class="password-input">
+            <input
+              id="password"
+              [type]="showPassword() ? 'text' : 'password'"
+              formControlName="password"
+              [autocomplete]="isLogin ? 'current-password' : 'new-password'"
+              [placeholder]="isLogin ? 'Sua senha' : 'Mínimo de 6 caracteres'"
+            />
+            <button
+              type="button"
+              (click)="showPassword.set(!showPassword())"
+              [attr.aria-label]="showPassword() ? 'Ocultar senha' : 'Mostrar senha'"
+            >
+              {{ showPassword() ? 'Ocultar' : 'Mostrar' }}
+            </button>
+          </div>
+          @if (fieldError('password')) {
+            <small>{{ fieldError('password') }}</small>
+          }
+        </div>
+
+        @if (submitError()) {
+          <div class="form-error" role="alert">
+            <span aria-hidden="true">!</span>{{ submitError() }}
+          </div>
+        }
+        @if (canReactivate()) {
+          <button class="reactivate-button" type="button" (click)="reactivate()">
+            Reativar minha conta
+          </button>
+        }
+
+        <button class="submit-button" type="submit" [disabled]="isSubmitting()">
+          <span>{{
+            isSubmitting() ? 'Aguarde…' : isLogin ? 'Entrar na conta' : 'Criar minha conta'
+          }}</span>
+          <span aria-hidden="true">→</span>
+        </button>
+      </form>
+
+      @if (!isLogin) {
+        <p class="terms">
+          Ao criar sua conta, você concorda em usar a plataforma de forma responsável.
+        </p>
+      }
+    </div>
+  </section>
+</main>

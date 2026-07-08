@@ -1,0 +1,166 @@
+<div class="landing" id="inicio">
+  <div class="landing__dark">
+    <app-site-header />
+    <main>
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="hero__copy">
+          <p class="eyebrow eyebrow--light"><span></span> Curadoria, descoberta e confiança</p>
+          <h1 id="hero-title">Boas histórias encontram <em>novos donos.</em></h1>
+          <p class="hero__lead">
+            Descubra peças únicas, acompanhe cada lance com clareza e arremate com segurança — de
+            onde estiver.
+          </p>
+          <div class="hero__actions">
+            <a class="button button--cream" routerLink="/leiloes"
+              >Explorar leilões <span aria-hidden="true">↗</span></a
+            >
+            <a class="text-link" href="#como-funciona"
+              >Entenda como funciona <span aria-hidden="true">↓</span></a
+            >
+          </div>
+          <div class="hero__trust">
+            <div class="avatar-stack" aria-hidden="true">
+              <span>AR</span><span>LM</span><span>+</span>
+            </div>
+            <p><strong>Uma experiência transparente</strong><br />do primeiro lance à entrega.</p>
+          </div>
+        </div>
+        <div class="hero__visual">
+          <picture
+            ><source srcset="hero-curadoria.webp" type="image/webp" />
+            <img
+              src="hero-curadoria.png"
+              alt="Relógio vintage, cerâmica e obra de arte em exposição"
+          /></picture>
+          <div class="hero__lot">
+            <span>Curadoria Leiloa</span
+            ><strong>Objetos que merecem<br />continuar suas histórias.</strong>
+          </div>
+          <span class="hero__index" aria-hidden="true">01</span>
+        </div>
+      </section>
+
+      <section class="trust-strip" id="seguranca" aria-label="Diferenciais da plataforma">
+        <article>
+          <span class="trust-strip__number">01</span>
+          <div>
+            <strong>Seleção cuidadosa</strong>
+            <p>Itens apresentados com detalhes para você decidir melhor.</p>
+          </div>
+        </article>
+        <article>
+          <span class="trust-strip__number">02</span>
+          <div>
+            <strong>Lances transparentes</strong>
+            <p>Acompanhe valores e prazos sem letras miúdas.</p>
+          </div>
+        </article>
+        <article>
+          <span class="trust-strip__number">03</span>
+          <div>
+            <strong>Jornada segura</strong>
+            <p>Uma plataforma pensada do cadastro à entrega.</p>
+          </div>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <main class="landing__light">
+    <section class="featured section" id="leiloes" aria-labelledby="featured-title">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow"><span></span> Agora no Leiloa</p>
+          <h2 id="featured-title">Peças em destaque</h2>
+        </div>
+        <p>Uma seleção de leilões ativos e programados, ordenados pelos próximos encerramentos.</p>
+      </div>
+      @if (isLoading()) {
+        <div class="auction-grid" aria-label="Carregando leilões">
+          @for (placeholder of [1, 2, 3]; track placeholder) {
+            <div class="auction-skeleton"><span></span><span></span><span></span></div>
+          }
+        </div>
+      } @else if (hasLoadError()) {
+        <div class="catalog-message" role="status">
+          <div><span aria-hidden="true">↻</span></div>
+          <h3>O catálogo está se preparando.</h3>
+          <p>Não foi possível carregar os leilões agora. Tente novamente em instantes.</p>
+          <button type="button" (click)="loadAuctions()">Tentar novamente</button>
+        </div>
+      } @else if (auctions().length) {
+        <div class="auction-grid">
+          @for (auction of auctions(); track auction.auctionId) {
+            <app-auction-card [auction]="auction" />
+          }
+        </div>
+        <div class="featured__more">
+          <a routerLink="/leiloes">Ver todos os leilões <span aria-hidden="true">→</span></a>
+        </div>
+      } @else {
+        <div class="catalog-message">
+          <div><span aria-hidden="true">◇</span></div>
+          <h3>Novidades a caminho.</h3>
+          <p>Não há leilões ativos ou agendados neste momento.</p>
+        </div>
+      }
+    </section>
+
+    <section class="how section" id="como-funciona" aria-labelledby="how-title">
+      <div class="how__intro">
+        <p class="eyebrow"><span></span> Simples por escolha</p>
+        <h2 id="how-title">Do primeiro olhar<br />ao seu novo achado.</h2>
+        <p>
+          Deixamos a tecnologia nos bastidores para que você aproveite o que realmente importa: a
+          descoberta.
+        </p>
+        <a class="text-link text-link--dark" routerLink="/leiloes"
+          >Comece a explorar <span aria-hidden="true">↗</span></a
+        >
+      </div>
+      <ol class="steps">
+        <li>
+          <span>01</span>
+          <div>
+            <h3>Encontre algo especial</h3>
+            <p>Navegue por itens e consulte informações, valores e prazos antes de participar.</p>
+          </div>
+        </li>
+        <li>
+          <span>02</span>
+          <div>
+            <h3>Faça seu lance</h3>
+            <p>Entre na disputa com clareza e acompanhe a evolução do leilão.</p>
+          </div>
+        </li>
+        <li>
+          <span>03</span>
+          <div>
+            <h3>Arremate com tranquilidade</h3>
+            <p>Conclua o pagamento e acompanhe os próximos passos pela plataforma.</p>
+          </div>
+        </li>
+      </ol>
+    </section>
+
+    <section class="cta section" id="participar">
+      <div>
+        <p class="eyebrow eyebrow--light"><span></span> Seu próximo achado está aqui</p>
+        <h2>Entre. Descubra.<br /><em>Faça parte da história.</em></h2>
+      </div>
+      <a class="button button--terracotta" routerLink="/cadastro"
+        >Criar minha conta <span aria-hidden="true">↗</span></a
+      >
+    </section>
+  </main>
+
+  <footer>
+    <a class="footer-brand" href="#inicio">leiloa<span>.</span></a>
+    <p>Objetos especiais. Novas histórias.</p>
+    <nav aria-label="Links do rodapé">
+      <a routerLink="/leiloes">Leilões</a><a href="#como-funciona">Como funciona</a
+      ><a href="#seguranca">Segurança</a>
+    </nav>
+    <small>© 2026 Leiloa</small>
+  </footer>
+</div>
