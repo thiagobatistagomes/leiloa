@@ -1,0 +1,250 @@
+:host {
+  display: block;
+  min-height: 100vh;
+  background: var(--page);
+}
+.admin {
+  width: min(100% - 40px, 1180px);
+  margin: auto;
+  padding: 62px 0 100px;
+}
+.intro p,
+.section-title p {
+  margin: 0;
+  color: var(--terracotta-dark);
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+.intro h1 {
+  margin: 8px 0;
+  color: var(--navy);
+  font-family: var(--font-display);
+  font-size: clamp(3rem, 5vw, 4.5rem);
+  font-weight: 500;
+}
+.intro span,
+.empty,
+.cards p,
+.cards small {
+  color: var(--text-muted);
+}
+.summary {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-top: 38px;
+}
+.summary article {
+  padding: 22px;
+  border: 1px solid var(--line-light);
+  background: var(--surface);
+}
+.summary span,
+.badge {
+  color: var(--terracotta-dark);
+  font-size: 0.66rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+.summary strong {
+  display: block;
+  margin-top: 8px;
+  color: var(--navy);
+  font-family: var(--font-display);
+  font-size: 2rem;
+}
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 34px 0;
+}
+button,
+select,
+input {
+  min-height: 40px;
+  border: 1px solid var(--line-light);
+  background: var(--surface);
+  color: var(--navy);
+  font: inherit;
+  font-size: 0.78rem;
+}
+button {
+  padding: 0 14px;
+  cursor: pointer;
+}
+button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+button.active,
+.solid {
+  border-color: var(--navy);
+  background: var(--navy);
+  color: var(--cream);
+}
+.danger {
+  color: var(--danger-text);
+}
+select,
+input {
+  padding: 0 12px;
+}
+section {
+  margin-top: 40px;
+}
+.section-title {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 18px;
+}
+.section-title h2 {
+  margin: 7px 0 0;
+  color: var(--navy);
+  font-family: var(--font-display);
+  font-size: 2.25rem;
+  font-weight: 500;
+}
+.filters,
+.create,
+.card-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.create {
+  margin-top: 24px;
+}
+.create input {
+  width: min(100%, 360px);
+}
+.feedback,
+.state {
+  padding: 14px 16px;
+  background: var(--terracotta-alpha-10);
+  color: var(--terracotta-dark);
+  font-size: 0.78rem;
+}
+.table {
+  margin-top: 24px;
+  border-top: 1px solid var(--line-light);
+}
+.row {
+  display: grid;
+  gap: 14px;
+  align-items: center;
+  padding: 15px 4px;
+  border-bottom: 1px solid var(--line-light);
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+.users .row {
+  grid-template-columns: 1.1fr 1.4fr 0.7fr 0.8fr auto;
+}
+.payments .row {
+  grid-template-columns: 0.8fr 0.8fr 0.8fr 0.8fr auto;
+}
+.categories .row {
+  grid-template-columns: minmax(0, 1fr) 0.5fr auto auto;
+}
+.bids .row {
+  grid-template-columns: 0.7fr 1fr 0.8fr 0.8fr 1fr;
+}
+.devices .row {
+  grid-template-columns: 1fr 0.6fr minmax(0, 1.4fr) 0.9fr;
+}
+.head {
+  color: var(--text-subtle);
+  font-size: 0.65rem;
+  text-transform: uppercase;
+}
+.row strong,
+.row a,
+.cards h3,
+.cards strong {
+  color: var(--navy);
+}
+.row span,
+.row a,
+.cards p {
+  overflow-wrap: anywhere;
+}
+.cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+  margin-top: 24px;
+}
+.cards article {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  padding: 22px;
+  border: 1px solid var(--line-light);
+  background: var(--surface);
+}
+.cards h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.45rem;
+  font-weight: 500;
+  line-height: 1.15;
+}
+.cards p {
+  margin: 0;
+  font-size: 0.76rem;
+}
+a {
+  color: var(--navy);
+}
+label {
+  display: grid;
+  gap: 6px;
+  color: var(--text-muted);
+  font-size: 0.7rem;
+}
+@media (max-width: 900px) {
+  .summary,
+  .cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .section-title {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .row,
+  .users .row,
+  .payments .row,
+  .categories .row,
+  .bids .row,
+  .devices .row {
+    grid-template-columns: 1fr 1fr;
+  }
+  .head {
+    display: none;
+  }
+}
+@media (max-width: 560px) {
+  .admin {
+    width: min(100% - 28px, 1180px);
+  }
+  .summary,
+  .cards,
+  .row,
+  .users .row,
+  .payments .row,
+  .categories .row,
+  .bids .row,
+  .devices .row {
+    grid-template-columns: 1fr;
+  }
+  .tabs {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding-bottom: 4px;
+  }
+}

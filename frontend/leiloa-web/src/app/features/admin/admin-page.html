@@ -1,0 +1,323 @@
+<app-header />
+<main class="admin">
+  <header class="intro">
+    <p>Operação</p>
+    <h1>Administração</h1>
+    <span>Audite registros e execute as ações restritas do sistema.</span>
+  </header>
+
+  <section class="summary" aria-label="Resumo administrativo">
+    <article>
+      <span>Usuários</span><strong>{{ totals().users }}</strong>
+    </article>
+    <article>
+      <span>Pagamentos</span><strong>{{ totals().payments }}</strong>
+    </article>
+    <article>
+      <span>Entregas</span><strong>{{ totals().deliveries }}</strong>
+    </article>
+    <article>
+      <span>Comentários</span><strong>{{ totals().comments }}</strong>
+    </article>
+  </section>
+
+  <div class="tabs" role="tablist" aria-label="Areas administrativas">
+    @for (item of tabs; track item.id) {
+      <button type="button" [class.active]="tab() === item.id" (click)="setTab(item.id)">
+        {{ item.label }}
+      </button>
+    }
+  </div>
+
+  @if (feedback()) {
+    <p class="feedback">{{ feedback() }}</p>
+  }
+  @if (loading()) {
+    <div class="state">Carregando painel administrativo...</div>
+  }
+
+  @switch (tab()) {
+    @case ('users') {
+      <section>
+        <div class="section-title">
+          <div>
+            <p>Auditoria</p>
+            <h2>Usuários</h2>
+          </div>
+          <label
+            >Status
+            <select [ngModel]="userStatus()" (ngModelChange)="userStatus.set($event); loadUsers()">
+              <option value="">Todos</option>
+              <option value="ACTIVE">Ativos</option>
+              <option value="INACTIVE">Inativos</option>
+              <option value="BLOCKED">Bloqueados</option>
+            </select>
+          </label>
+        </div>
+        <div class="table users">
+          <div class="row head">
+            <span>Nome</span><span>E-mail</span><span>Status</span><span>Cadastro</span
+            ><span></span>
+          </div>
+          @for (user of users(); track user.id) {
+            <div class="row">
+              <strong>{{ user.name }}</strong>
+              <span>{{ user.email }}</span>
+              <span class="badge">{{ statusLabel(user.status) }}</span>
+              <span>{{ user.createdAt | date: 'dd/MM/yyyy' }}</span>
+              <button type="button" (click)="toggleUser(user)">
+                {{ user.status === 'BLOCKED' ? 'Reativar' : 'Bloquear' }}
+              </button>
+            </div>
+          } @empty {
+            <p class="empty">Nenhum usuário encontrado.</p>
+          }
+        </div>
+      </section>
+    }
+    @case ('payments') {
+      <section>
+        <div class="section-title">
+          <div>
+            <p>Financeiro</p>
+            <h2>Pagamentos</h2>
+          </div>
+          <div class="filters">
+            <select
+              [ngModel]="paymentStatus()"
+              (ngModelChange)="paymentStatus.set($event); loadPayments()"
+            >
+              <option value="">Todos</option>
+              <option value="PENDING">Pendentes</option>
+              <option value="COMPLETED">Pagos</option>
+              <option value="EXPIRED">Expirados</option>
+              <option value="CANCELLED">Cancelados</option>
+            </select>
+            <button type="button" class="solid" (click)="expirePayments()">
+              Expirar pendentes
+            </button>
+          </div>
+        </div>
+        <div class="table payments">
+          <div class="row head">
+            <span>Pagamento</span><span>Leilão</span><span>Valor</span><span>Status</span
+            ><span></span>
+          </div>
+          @for (payment of payments(); track payment.id) {
+            <div class="row">
+              <span>{{ shortId(payment.id) }}</span>
+              <a [routerLink]="['/leiloes', payment.auctionId]">{{ shortId(payment.auctionId) }}</a>
+              <strong>{{ payment.value | currency: 'BRL' }}</strong>
+              <span class="badge">{{ statusLabel(payment.status) }}</span>
+              <button
+                type="button"
+                [disabled]="payment.status !== 'PENDING'"
+                (click)="cancelPayment(payment)"
+              >
+                Cancelar
+              </button>
+            </div>
+          }
+        </div>
+      </section>
+    }
+    @case ('deliveries') {
+      <section>
+        <div class="section-title">
+          <div>
+            <p>Logística</p>
+            <h2>Entregas</h2>
+          </div>
+          <select
+            [ngModel]="deliveryStatus()"
+            (ngModelChange)="deliveryStatus.set($event); loadDeliveries()"
+          >
+            <option value="">Todas</option>
+            <option value="PENDING">Aguardando</option>
+            <option value="PROCESSING">Em preparo</option>
+            <option value="SHIPPED">Enviadas</option>
+            <option value="IN_TRANSIT">Em trânsito</option>
+            <option value="OUT_FOR_DELIVERY">Saiu para entrega</option>
+            <option value="DELIVERED">Entregues</option>
+            <option value="RETURN_REQUESTED">Devolução solicitada</option>
+            <option value="RETURNED">Devolvidas</option>
+          </select>
+        </div>
+        <div class="cards">
+          @for (delivery of deliveries(); track delivery.id) {
+            <article>
+              <span class="badge">{{ statusLabel(delivery.status) }}</span>
+              <h3>Entrega {{ shortId(delivery.id) }}</h3>
+              <p>Pagamento {{ shortId(delivery.paymentId) }}</p>
+              <p>{{ delivery.deliveryMethod || 'Metodo nao informado' }}</p>
+              @if (delivery.trackingCode) {
+                <p>Rastreio: {{ delivery.trackingCode }}</p>
+              }
+              <select
+                [ngModel]="delivery.status"
+                (ngModelChange)="updateDelivery(delivery, $event)"
+              >
+                <option value="PENDING">Aguardando</option>
+                <option value="PROCESSING">Em preparo</option>
+                <option value="SHIPPED">Enviado</option>
+                <option value="IN_TRANSIT">Em trânsito</option>
+                <option value="OUT_FOR_DELIVERY">Saiu para entrega</option>
+                <option value="DELIVERED">Entregue</option>
+                <option value="RETURN_REQUESTED">Devolução solicitada</option>
+                <option value="RETURNED">Devolvido</option>
+              </select>
+            </article>
+          }
+        </div>
+      </section>
+    }
+    @case ('auctions') {
+      <section>
+        <div class="section-title">
+          <div>
+            <p>Encerramento</p>
+            <h2>Leiloes ativos</h2>
+          </div>
+        </div>
+        <div class="cards">
+          @for (auction of auctions(); track auction.auctionId) {
+            <article>
+              <span class="badge">{{ statusLabel(auction.status) }}</span>
+              <h3>{{ auction.itemName }}</h3>
+              <strong>{{ auction.currentPrice | currency: 'BRL' }}</strong>
+              <p>Termina em {{ auction.endDate | date: 'dd/MM/yyyy, HH:mm' }}</p>
+              <div class="card-actions">
+                <a [routerLink]="['/leiloes', auction.auctionId]">Ver</a>
+                <button type="button" (click)="finishAuction(auction)">Finalizar</button>
+              </div>
+            </article>
+          }
+        </div>
+      </section>
+    }
+    @case ('categories') {
+      <section>
+        <div class="section-title">
+          <div>
+            <p>Catalogo</p>
+            <h2>Categorias</h2>
+          </div>
+        </div>
+        <form class="create" (ngSubmit)="saveCategory()">
+          <input
+            name="categoryName"
+            [ngModel]="categoryName()"
+            (ngModelChange)="categoryName.set($event)"
+            placeholder="Nova categoria"
+          />
+          <button type="submit" class="solid">Criar</button>
+        </form>
+        <div class="table categories">
+          @for (category of categories(); track category.id) {
+            <div class="row">
+              <input [(ngModel)]="category.name" [name]="'category-' + category.id" />
+              <span>{{ shortId(category.id) }}</span>
+              <button type="button" (click)="saveCategory(category)">Salvar</button>
+              <button type="button" class="danger" (click)="deleteCategory(category)">
+                Remover
+              </button>
+            </div>
+          }
+        </div>
+      </section>
+    }
+    @case ('comments') {
+      <section>
+        <div class="section-title">
+          <div>
+            <p>Moderação</p>
+            <h2>Comentários</h2>
+          </div>
+          <div class="filters">
+            <input
+              [ngModel]="commentQuery()"
+              (ngModelChange)="commentQuery.set($event)"
+              placeholder="Buscar texto"
+            />
+            <select
+              [ngModel]="commentStatus()"
+              (ngModelChange)="commentStatus.set($event); loadComments()"
+            >
+              <option value="">Todos</option>
+              <option value="VISIBLE">Visíveis</option>
+              <option value="HIDDEN">Ocultos</option>
+              <option value="BLOCKED">Bloqueados</option>
+              <option value="DELETED">Excluídos</option>
+            </select>
+            <button type="button" (click)="loadComments()">Buscar</button>
+          </div>
+        </div>
+        <div class="cards">
+          @for (comment of comments(); track comment.id) {
+            <article>
+              <span class="badge">{{ statusLabel(comment.status) }}</span>
+              <h3>{{ comment.userName }}</h3>
+              <p>{{ comment.content }}</p>
+              <small>{{ comment.createdAt | date: 'dd/MM/yyyy, HH:mm' }}</small>
+              <button type="button" (click)="toggleComment(comment)">
+                {{ comment.status === 'BLOCKED' ? 'Desbloquear' : 'Bloquear' }}
+              </button>
+            </article>
+          }
+        </div>
+      </section>
+    }
+    @case ('bids') {
+      <section>
+        <div class="section-title">
+          <div>
+            <p>Auditoria</p>
+            <h2>Lances</h2>
+          </div>
+        </div>
+        <div class="table bids">
+          <div class="row head">
+            <span>Lance</span><span>Usuário</span><span>Leilão</span><span>Valor</span>
+            <span>Data</span>
+          </div>
+          @for (bid of bids(); track bid.id) {
+            <div class="row">
+              <span>{{ shortId(bid.id) }}</span>
+              <span>{{ bid.bidderName || shortId(bid.bidderId) }}</span>
+              <a [routerLink]="['/leiloes', bid.auctionId]">{{ shortId(bid.auctionId) }}</a>
+              <strong>{{ bid.value | currency: 'BRL' }}</strong>
+              <span>{{ bid.createdAt | date: 'dd/MM/yyyy, HH:mm' }}</span>
+            </div>
+          }
+        </div>
+      </section>
+    }
+    @case ('devices') {
+      <section>
+        <div class="section-title">
+          <div>
+            <p>Segurança</p>
+            <h2>Dispositivos</h2>
+          </div>
+        </div>
+        <div class="table devices">
+          <div class="row head">
+            <span>Usuário</span><span>Tipo</span><span>Token</span><span>Último uso</span>
+          </div>
+          @for (device of devices(); track device.id) {
+            <div class="row">
+              <span>{{ device.userEmail }}</span>
+              <span>{{ device.deviceType }}</span>
+              <span>{{ device.deviceToken }}</span>
+              <span>{{
+                device.lastUsedAt
+                  ? (device.lastUsedAt | date: 'dd/MM/yyyy, HH:mm')
+                  : 'Sem uso registrado'
+              }}</span>
+            </div>
+          }
+        </div>
+      </section>
+    }
+  }
+</main>
