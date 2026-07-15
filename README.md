@@ -40,6 +40,20 @@ Leiloa/
 └── frontend/   # Aplicação Angular
 ```
 
+## Acesso de demonstração
+
+A aplicação inclui um usuário administrador pré-cadastrado para facilitar a avaliação das funcionalidades administrativas.
+
+**Credenciais:**
+
+| Campo | Valor |
+|-------|-------|
+| E-mail | `admin@leiloa.com` |
+| Senha | `admin123` |
+
+> **Observação:** essas credenciais destinam-se exclusivamente ao ambiente de desenvolvimento e demonstração do projeto. Elas não devem ser utilizadas em ambiente de produção.
+
+
 ## Documentação
 
 Cada módulo possui sua própria documentação:
