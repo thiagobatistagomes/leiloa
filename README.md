@@ -1,27 +1,52 @@
 # Leiloa
 
-Leiloa é uma plataforma de leilões online desenvolvida como projeto full stack,
-com foco em boas práticas de backend, segurança, APIs REST e documentação.
+Leiloa é uma plataforma de leilões online desenvolvida como um projeto full stack,
+com foco em arquitetura de software, APIs REST, autenticação segura e boas práticas de desenvolvimento.
 
-## Visão Geral
-- Backend: API REST com Spring Boot
-- Frontend: Angular
-- Autenticação via JWT
-- Documentação interativa com Swagger
+## Funcionalidades
 
-## Estrutura do Projeto
-- /backend → API REST
-- /frontend → Interface web
+- Cadastro e autenticação de usuários
+- Gerenciamento de itens e categorias
+- Criação e gerenciamento de leilões
+- Sistema de lances em tempo real
+- Controle de pagamentos
+- Sistema de comentários
+- Notificações aos usuários
+- Painel administrativo
 
 ## Tecnologias
+
+### Backend
 - Java 21
 - Spring Boot
 - Spring Security
+- Spring Data JPA
 - PostgreSQL
 - Flyway
+- JWT
 - Swagger (OpenAPI)
+
+### Frontend
 - Angular
+- TypeScript
+- HTML
+- CSS
+
+## Estrutura do projeto
+
+```
+Leiloa/
+├── backend/    # API REST
+└── frontend/   # Aplicação Angular
+```
+
+## Documentação
+
+Cada módulo possui sua própria documentação:
+
+- `/backend/README.md`
+- `/frontend/README.md`
 
 ## Como executar
-Cada parte do projeto possui seu próprio README com instruções detalhadas.
 
+Consulte os READMEs específicos do backend e do frontend para obter as instruções de instalação e execução.
